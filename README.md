@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dress Me - Virtual Try-On Application
 
-## Getting Started
+A mobile-first web application for virtual try-on of clothing using AI-generated images.
 
-First, run the development server:
+## Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Dress Me allows users to upload a clothing item, select a model and style, and generate realistic images of the clothing worn by the model. The application uses a three-step workflow:
+
+1. **Upload** - Upload or capture an image of the clothing item
+2. **Configure** - Select model, style, and accessories
+3. **Result** - View generated images and share/list the item
+
+## Architecture
+
+The application follows a mobile-first design with a strict thumb zone for primary actions. It uses a linear workflow with three screens corresponding to the three steps.
+
+### Key Technologies
+
+- **Framework**: Next.js 14+ (App Router, TypeScript)
+- **Styling**: Tailwind CSS + Shadcn UI
+- **State Management**: Zustand
+- **Image Processing**: Client-side resizing and compression
+- **Mock AI Segmentation**: RMBG-2.0 (placeholder)
+- **Mock Generation**: Simulated progress with random delay
+- **Mock VLM**: Fast listing generation (placeholder)
+
+### Project Structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx          # Root layout
+│   ├── page.tsx            # Redirect to /studio
+│   ├── models/             # Models library
+│   │   ├── page.tsx        # Models index
+│   │   └── [id]/page.tsx   # Model detail
+│   ├── studio/             # Studio (main workflow)
+│   │   └── page.tsx        # Studio with three steps
+│   └── results/            # Results placeholder
+│       └── page.tsx
+├── components/
+│   └── mobile/             # Mobile-specific components
+│       ├── UploadStep.tsx  # Step 1: Upload
+│       ├── ConfigStep.tsx  # Step 2: Configure
+│       └── ResultStep.tsx  # Step 3: Result
+├── store/                  # Zustand stores
+│   ├── useModelStore.ts    # Model data (persistent)
+│   ├── useGarmentStore.ts  # Garment data (session)
+│   ├── useGenerationStore.ts # Generation state
+│   └── useUiStore.ts       # UI state (drawer, theme)
+├── lib/                    # Utilities (if needed)
+└── styles/                 # Global styles
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Learn More
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn more about Next.js, take a look at the following resources:
+### Branches
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `master` - Stable production code
+- `develop` - Integration branch for features
+- `feature/upload-step` - Upload step implementation
+- `feature/config-step` - Configuration step implementation
+- `feature/result-step` - Result step implementation
+- `feature/stores` - Zustand store implementation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Design Notes
 
-## Deploy on Vercel
+- Primary action buttons are fixed in the bottom thumb zone (minimum 56px height)
+- Uses segmented controls and large selectable cards for mobile-friendly interaction
+- Placeholder images and mock data are used for demonstration; replace with actual AI services in production
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Future Work
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Integrate actual RMBG-2.0 segmentation via WebGPU
+- Connect to backend API for model data and generation
+- Implement real VLM for fast listing generation
+- Add image persistence and gallery saving
+- Implement actual pose selection and model switching
+
+### License
+
+MIT
