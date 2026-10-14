@@ -52,7 +52,7 @@ src/
 └── styles/                 # Global styles
 ```
 
-### Setup
+## Setup
 
 1. Install dependencies:
    ```bash
@@ -66,7 +66,31 @@ src/
 
 3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Branches
+## Deployment
+
+The application can be easily deployed to various platforms:
+
+### Vercel (Recommended)
+
+1. Install the Vercel CLI: `npm i -g vercel`
+2. Deploy: `vercel`
+3. Follow the prompts to configure your project
+
+### Netlify
+
+1. Install the Netlify CLI: `npm i -g netlify-cli`
+2. Deploy: `netlify deploy`
+3. Follow the prompts to configure your project
+
+### Other Platforms
+
+The application is a standard Next.js app and can be deployed to any platform that supports Next.js, including:
+- AWS Amplify
+- Google Cloud Platform
+- Azure Static Web Apps
+- Docker (for custom deployments)
+
+## Branches
 
 - `master` - Stable production code
 - `develop` - Integration branch for features
@@ -75,13 +99,13 @@ src/
 - `feature/result-step` - Result step implementation
 - `feature/stores` - Zustand store implementation
 
-### Design Notes
+## Design Notes
 
 - Primary action buttons are fixed in the bottom thumb zone (minimum 56px height)
 - Uses segmented controls and large selectable cards for mobile-friendly interaction
 - Placeholder images and mock data are used for demonstration; replace with actual AI services in production
 
-### Future Work
+## Future Work
 
 - Integrate actual RMBG-2.0 segmentation via WebGPU
 - Connect to backend API for model data and generation
@@ -89,6 +113,6 @@ src/
 - Add image persistence and gallery saving
 - Implement actual pose selection and model switching
 
-### License
+## License
 
 MIT
