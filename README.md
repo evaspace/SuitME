@@ -1,118 +1,94 @@
-# Dress Me - Virtual Try-On Application
+# Dress Me
 
-A mobile-first web application for virtual try-on of clothing using AI-generated images.
+Dress Me is a personal, mobile-first web workspace for preparing virtual try-on images and listing content for clothing items.
 
-## Overview
+The repository contains an interactive personal-use web app. Model profiles, reference photos, results, and edited listing fields are saved in this browser. Garment uploads remain temporary in memory. Try-on generation uses Google Gemini image generation through a server-side route.
 
-Dress Me allows users to upload a clothing item, select a model and style, and generate realistic images of the clothing worn by the model. The application uses a three-step workflow:
+## Product direction
 
-1. **Upload** - Upload or capture an image of the clothing item
-2. **Configure** - Select model, style, and accessories
-3. **Result** - View generated images and share/list the item
+- Optimize for one person's repeated use rather than a multi-user marketplace.
+- Keep the main workflow linear: upload a garment, choose a model and style, review results.
+- Use as few visible actions as possible on each screen.
+- Make the primary action obvious, large, and comfortable to tap.
+- Explain every action through its label and visible result.
+- Keep all product UI and project documentation in English.
+- The selected garment and model reference photos are sent to Google Gemini only when Generate try-on is used.
 
-## Architecture
+## Current web foundation
 
-The application follows a mobile-first design with a strict thumb zone for primary actions. It uses a linear workflow with three screens corresponding to the three steps.
+- Next.js App Router with TypeScript and React.
+- Tailwind CSS 4 for utility styling, with a small global design foundation.
+- Zustand stores for the current prototype state.
+- Route destinations: `/studio`, `/models`, `/models/[id]`, and `/results`.
+- Shared application frame and responsive navigation.
 
-### Key Technologies
+The current stack is intended for personal use. Authentication and protected durable storage remain future work; browser local storage is not encrypted, backed up, or shared between devices.
 
-- **Framework**: Next.js 14+ (App Router, TypeScript)
-- **Styling**: Tailwind CSS + Shadcn UI
-- **State Management**: Zustand
-- **Image Processing**: Client-side resizing and compression
-- **Mock AI Segmentation**: RMBG-2.0 (placeholder)
-- **Mock Generation**: Simulated progress with random delay
-- **Mock VLM**: Fast listing generation (placeholder)
+## Project map
 
-### Project Structure
+```text
+app/
+├── layout.tsx                 # English document metadata and shared application frame
+├── page.tsx                   # Redirects to the Studio
+├── globals.css                # Tailwind import and shared visual foundations
+├── loading.tsx                # Shared route loading state
+├── error.tsx                  # Shared route recovery state
+├── not-found.tsx              # Unknown route fallback
+├── studio/                    # Main garment-to-result workflow
+├── models/                    # Model library and model detail routes
+└── results/                   # Generated result and export destination
 
-```
 src/
-├── app/
-│   ├── layout.tsx          # Root layout
-│   ├── page.tsx            # Redirect to /studio
-│   ├── models/             # Models library
-│   │   ├── page.tsx        # Models index
-│   │   └── [id]/page.tsx   # Model detail
-│   ├── studio/             # Studio (main workflow)
-│   │   └── page.tsx        # Studio with three steps
-│   └── results/            # Results placeholder
-│       └── page.tsx
 ├── components/
-│   └── mobile/             # Mobile-specific components
-│       ├── UploadStep.tsx  # Step 1: Upload
-│       ├── ConfigStep.tsx  # Step 2: Configure
-│       └── ResultStep.tsx  # Step 3: Result
-├── store/                  # Zustand stores
-│   ├── useModelStore.ts    # Model data (persistent)
-│   ├── useGarmentStore.ts  # Garment data (session)
-│   ├── useGenerationStore.ts # Generation state
-│   └── useUiStore.ts       # UI state (drawer, theme)
-├── lib/                    # Utilities (if needed)
-└── styles/                 # Global styles
+│   ├── layout/                 # Shared application frame
+│   └── mobile/                 # Current mobile workflow prototype
+└── store/                     # Current client-side prototype state
+
+README.md
+TODO.md                         # Product decisions and remaining online-release work
+architecture_front_end_dress_me.md
 ```
 
-## Setup
+Each route folder records implemented interaction decisions and remaining online-release work.
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+## Run with Docker
 
-2. Run the development server:
-   ```bash
-   npm run dev
-   ```
+```bash
+make dev
+```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000). This starts the development server with live source updates. Stop it with `Ctrl+C`.
 
-## Deployment
+Set `GEMINI_API_KEY` in the ignored `.env.local` file to enable image generation. Keep the key server-side; do not use a `NEXT_PUBLIC_` prefix. Restart the app after changing the file.
 
-The application can be easily deployed to various platforms:
+Run the available project checks in a cached Docker build:
 
-### Vercel (Recommended)
+```bash
+make test
+```
 
-1. Install the Vercel CLI: `npm i -g vercel`
-2. Deploy: `vercel`
-3. Follow the prompts to configure your project
+`make test` runs ESLint and a production build; the repository does not yet have an automated unit-test suite. Use `make test-lint` or `make test-build` for one check at a time.
 
-### Netlify
+Available scripts:
 
-1. Install the Netlify CLI: `npm i -g netlify-cli`
-2. Deploy: `netlify deploy`
-3. Follow the prompts to configure your project
+- `npm run dev` - start the local development server.
+- `npm run build` - create a production build.
+- `npm run start` - serve a production build.
+- `npm run lint` - run ESLint.
 
-### Other Platforms
+## Planning files
 
-The application is a standard Next.js app and can be deployed to any platform that supports Next.js, including:
-- AWS Amplify
-- Google Cloud Platform
-- Azure Static Web Apps
-- Docker (for custom deployments)
+- [Project TODO](TODO.md) - ordered foundation, product, design, and implementation work.
+- [Architecture and UX specification](architecture_front_end_dress_me.md) - product decisions, visual direction, route behavior, and online-release requirements.
+- [Studio TODO](app/studio/TODO.md)
+- [Model library TODO](app/models/TODO.md)
+- [Model detail TODO](<app/models/[id]/TODO.md>)
+- [Results TODO](app/results/TODO.md)
+- [Shared layout TODO](app/TODO.md)
+- [Shared layout components TODO](src/components/layout/TODO.md)
+- [Workflow components TODO](src/components/mobile/TODO.md)
+- [State management TODO](src/store/TODO.md)
 
-## Branches
+## Scope boundary
 
-- `master` - Stable production code
-- `develop` - Integration branch for features
-- `feature/upload-step` - Upload step implementation
-- `feature/config-step` - Configuration step implementation
-- `feature/result-step` - Result step implementation
-- `feature/stores` - Zustand store implementation
-
-## Design Notes
-
-- Primary action buttons are fixed in the bottom thumb zone (minimum 56px height)
-- Uses segmented controls and large selectable cards for mobile-friendly interaction
-- Placeholder images and mock data are used for demonstration; replace with actual AI services in production
-
-## Future Work
-
-- Integrate actual RMBG-2.0 segmentation via WebGPU
-- Connect to backend API for model data and generation
-- Implement real VLM for fast listing generation
-- Add image persistence and gallery saving
-- Implement actual pose selection and model switching
-
-## License
-
-MIT
+The app is browser-local and intended for personal use. User accounts, protected durable storage, backups, and production deployment are future work. The garment and model images are sent to Google Gemini only when the user chooses Generate try-on.

@@ -1,426 +1,233 @@
-# Spécifications Techniques et Architecture Front-End — Dress Me
+# Dress Me - Web Architecture and UX Specification
 
-Ce document définit la structure, l'architecture logicielle, les flux de données et l'ergonomie de l'interface utilisateur pour la plateforme web **Dress Me**.
+**Status:** working product and design brief. Items described as tentative still need review with the designer and developer. This document defines the foundation and future work; it does not claim that the listed product behavior is implemented.
 
----
+## 1. Product goal
 
-## 1. Vue d'Ensemble & Principes Directeurs
+Dress Me is a personal web workspace for turning a clothing photo into a small pack of virtual try-on images and reusable listing text. The core value is a short, predictable workflow that can be repeated item after item.
 
-**Dress Me** est une application web à haute efficacité conçue pour générer rapidement des visuels de vêtements portés par des mannequins réels via l'Intelligence Artificielle.
+### Design principles
 
-### Principes Clés d'Architecture
-1. **Dichotomie Strict-Mémoire :**
-   * **Données Permanentes :** Profils de mannequins, métadonnées anatomiques, photos de poses de référence (persistés en base de données / S3).
-   * **Données Temporaires :** Fichiers vêtements importés, masques de segmentation, rendus générés et métadonnées d'annonces (stockés uniquement durant la session active et purgés post-export).00
-2. **Latence Minime & Feedback Instantané :** Prétraitement côté client (compression, redimensionnement Canvas, preview WebGL) avant envoi des requêtes d'inférence heavy-GPU.
-3. **Workflow Linear & Monopage :** Minimiser les clics pour passer de l'upload du vêtement brut à l'export du pack d'images final.
+1. **One clear next step:** each workflow screen should have one dominant action.
+2. **Few, large controls:** keep the visible action count low; primary touch targets should be at least 56 px high, with a preferred 64 px target for the main action.
+3. **Plain action labels:** name the result, such as “Choose a photo” or “Generate images,” instead of using vague labels such as “Continue” where possible.
+4. **No duplicate actions:** do not show the same action in both the page body and a fixed bottom bar.
+5. **Visible feedback:** every action must show its outcome, progress, failure, or disabled reason.
+6. **Mobile first:** support a narrow viewport and safe areas first, then make use of wider screens without adding unnecessary controls.
+7. **Private by default:** uploads and generated images are temporary until the user explicitly saves or exports them.
+8. **English throughout:** interface copy, code comments intended for the team, README files, and planning documents use English.
 
----
+## 2. Current foundation and boundaries
 
-## 2. Stack Technique Front-End Recommandée
+The current repository uses Next.js App Router, TypeScript, React, Tailwind CSS 4, and Zustand. The app has route folders for the Studio, model library, model detail, and results. Studio sends the selected garment and model reference images to Gemini 3.1 Flash Image through a server-side route; the API key is private server configuration.
 
-* **Framework React :** Next.js 14+ (App Router, TypeScript)
-* **Gestionnaire d'État Global :** Zustand (léger, modulaire, adapté au suivi des Blobs et des sessions de travail)
-* **Styling & UI Kit :** Tailwind CSS + Shadcn UI + Lucide React (composants accessibles et hautement personnalisables)
-* **Communication Temps Réel :** Socket.io-client ou EventSource (Server-Sent Events / SSE) pour le suivi étape par étape de l'inférence IA (Segmentation $\rightarrow$ DensePose $\rightarrow$ Diffusion $\rightarrow$ Relighting).
-* **Traitement d'Image Client :** `browser-image-compression`, Canvas API / OffscreenCanvas.
+The following decisions remain open and must not be silently assumed during feature work:
 
----
+- Authentication and whether the first release is reachable only by its owner.
+- Backend language and hosting model.
+- Database, image storage, retention period, and backup policy.
+- AI vendors or local models for segmentation and listing metadata. Gemini is currently used for image generation.
+- Whether any data persists after a session and what the explicit save action means.
+- Whether generated content is downloaded as individual images, a ZIP, or both.
+- Target devices, minimum browser support, and accessibility acceptance criteria.
 
-## 3. Arborescence du Projet (Front-End)
+## 3. Route map
 
-```text
-src/
-├── app/
-│   ├── layout.tsx                  # Root Layout (Thème, Modals globaux, Providers)
-│   ├── page.tsx                    # Redirection vers /studio
-│   ├── models/                     # Page : Bibliothèque des Modèles
-│   │   ├── page.tsx
-│   │   └── [id]/page.tsx           # Édition d'un mannequin & ses poses
-│   ├── studio/                     # Page : Studio Express (Workspace principal)
-│   │   └── page.tsx
-│   └── results/                    # Page / Drawer : Galerie de Résultats & Export
-│       └── page.tsx
-├── components/
-│   ├── layout/                     # Header, Sidebar, Navigation
-│   ├── models/                     # Cartes Modèles, Formulaire Pose, Tagging
-│   ├── studio/                     # Dropzone, Segmentation Preview, Auto-Router, Style Matrix
-│   ├── results/                    # Image Comparison, Inpainting Canvas, Fast-Listing Editor
-│   └── ui/                         # Composants atomiques (Buttons, Modals, Sliders, Badges)
-├── store/
-│   ├── useModelStore.ts            # État permanent : Mannequins & Poses
-│   ├── useGarmentStore.ts          # État temporaire : Vêtement uploadé & Masque
-│   ├── useGenerationStore.ts       # État d'inférence : Jobs IA, Websocket status, Rendus
-│   └── useUiStore.ts               # UX : Drawer status, Thème, Notifications
-├── hooks/
-│   ├── useGarmentProcessor.ts      # Pipeline local : Resize, Canvas Blob, SAM2 Trigger
-│   ├── useSseJobTracker.ts         # Hook de suivi de progression IA
-│   └── useMemoryCleaner.ts         # Purge automatique des URL.createObjectURL()
-├── types/
-│   ├── model.ts                    # Interfaces : Model, Pose, PoseCategory
-│   ├── garment.ts                  # Interfaces : Garment, SegmentationMask, StyleConfig
-│   └── generation.ts               # Interfaces : JobStatus, GenerationResult, VlmMetadata
-└── lib/
-    ├── api.ts                      # Client Axios/Fetch typé
-    └── utils.ts                    # Helpers (Image processing, Blob cleanup)
-```
+| Route | Purpose | Main user outcome |
+| --- | --- | --- |
+| `/studio` | Start and complete the garment workflow | Produce and review a try-on result |
+| `/models` | Browse the personal model library | Choose or maintain a reusable model |
+| `/models/[id]` | Inspect and maintain one model and its poses | Keep that model's inputs ready for the Studio |
+| `/results` | Review the current or saved result set | Copy listing text or export images |
 
----
+The root route redirects to `/studio`. The shared application frame owns the product name, route navigation, page width, and global accessibility landmarks. Route-specific actions stay inside their destination; the global frame should not become a second toolbar.
 
-## 4. Gestion de l'État Global (Stores Zustand)
+## 4. Proposed information architecture
 
-### A. `useModelStore` (Données Permanentes)
-```typescript
-interface Pose {
-  id: string;
-  category: 'front_standing' | 'profile' | 'three_quarter' | 'sitting' | 'back';
-  imageUrl: string;
-  isDefault: boolean;
-}
+### Shared application frame
 
-interface Model {
-  id: string;
-  name: string;
-  gender: 'female' | 'male' | 'unisex';
-  size: 'XS' | 'S' | 'M' | 'L' | 'XL';
-  skinTone: string;
-  defaultStyle: 'casual' | 'chic' | 'streetwear';
-  poses: Pose[];
-}
+- Use a semantic header, navigation landmark, main landmark, and page title hierarchy.
+- Keep navigation to the four known destinations, with a clear current-route state.
+- On small screens, navigation must remain reachable without competing with the workflow's primary bottom action.
+- Do not display technical diagnostics, memory counts, model pipeline names, or transport status in normal product UI.
+- Provide consistent focus, hover, pressed, disabled, and loading states.
 
-interface ModelStore {
-  models: Model[];
-  selectedModelId: string | null;
-  activeModel: () => Model | undefined;
-  fetchModels: () => Promise<void>;
-  addModel: (model: Omit<Model, 'id'>) => Promise<void>;
-  updatePoses: (modelId: string, poses: Pose[]) => void;
-  selectModel: (id: string) => void;
-}
-```
+### Studio (`/studio`)
 
-### B. `useGarmentStore` (Données Temporaires Session)
-```typescript
-interface GarmentStore {
-  rawFile: File | null;
-  previewUrl: string | null;
-  segmentedMaskUrl: string | null;
-  isSegmenting: boolean;
-  detectedCategory: string | null; // e.g., "blazer", "dress"
-  styleConfig: {
-    targetStyle: 'chic' | 'casual' | 'streetwear';
-    autoSelectPoses: boolean;
-    selectedPoseIds: string[];
-    accessorize: boolean;
-    accessoryDensity: number; // 0 à 100%
-  };
-  setGarmentFile: (file: File) => void;
-  setSegmentedResult: (maskUrl: string, category: string) => void;
-  updateStyleConfig: (config: Partial<GarmentStore['styleConfig']>) => void;
-  clearGarmentSession: () => void; // Purge la mémoire temporaire
-}
-```
+The proposed flow has three stages. The exact screen composition remains a design task.
 
----
+1. **Garment photo:** choose or capture one image, inspect the preview, replace or remove it, then continue.
+2. **Model and style:** accept a recommended model or select one; choose a simple style and pose behavior; generate.
+3. **Result:** review the generated images and listing text; export or start another item.
 
-## 5. Description Détaillée des Écrans & Composants
+Initial action contracts to review:
 
-### 5.1. Header & Navigation Globale
-* **Position :** Fixe en haut de l'écran.
-* **Éléments :**
-  * **Logo & Titre :** *Dress Me*.
-  * **Navigation principale :** 
-    * `Studio Express` (Lien actif par défaut).
-    * `Bibliothèque Modèles` (Badge indiquant le nombre de modèles actifs, ex. `3 Modèles prêts`).
-  * **Indicateur de Session Temporaire :** Statut mémoire (`0 Vêtement en mémoire` / `1 Vêtement actif`).
-  * **Bouton Purge Rapide :** Icône poubelle pour nettoyer la session en cours d'un clic.
+| Action | Intended result | Rules to decide before implementation |
+| --- | --- | --- |
+| Choose a photo | Opens the file picker; mobile may offer camera capture | Supported formats, size limit, rejection feedback, camera behavior |
+| Replace photo | Reopens photo selection and replaces the current temporary garment | Confirm whether the old preview is discarded immediately |
+| Remove photo | Clears the current garment and its preview | Decide whether confirmation is needed; it should be reversible before generation if practical |
+| Continue | Moves to configuration only when a valid preview is ready | Preserve the selected file when going back |
+| Select a model | Makes that model the target for this generation | Show one unmistakable selected state; decide default recommendation rules |
+| Choose a style | Saves one style choice | Decide allowed values and whether defaults come from the model |
+| Generate images | Starts one generation job and shows progress | Prevent duplicate submissions; define cancel, retry, timeout, and failure behavior |
+| Back | Returns to the previous stage | Preserve current choices unless the user explicitly resets |
+| Copy listing | Copies the complete chosen listing text | Define behavior when clipboard access fails and show a clear confirmation |
+| Download images | Saves the selected output or a pack locally | Decide format, file names, and partial-failure behavior |
+| Start another item | Clears temporary garment and result state, then returns to photo selection | Explain what will be discarded; only confirm if recovery is not possible |
 
----
+Every screen must be designed for first use, normal use, missing data, invalid input, processing, failure, retry, and return navigation. Detailed tasks are in [`app/studio/TODO.md`](app/studio/TODO.md).
 
-### 5.2. Page 1 : Bibliothèque de Modèles (`/models`)
+### Model library (`/models`)
 
-Cette vue gère le stock permanent de personnes réelles pouvant porter les vêtements.
+The library contains reusable model profiles and should make readiness obvious without overwhelming the user. The list, empty state, add flow, edit flow, activation rules, and deletion behavior all require design review.
 
-```
-+-------------------------------------------------------------------------------+
-| BIBLIOTHÈQUE DES MODÈLES                        [ + Ajouter un Modèle ]       |
-+-------------------------------------------------------------------------------+
-| +----------------------------------+  +----------------------------------+ |
-| |  [Avatar] Elena (Femme - S)     |  |  [Avatar] Marcus (Homme - L)     | |
-| |  Style par défaut : Chic         |  |  Style par défaut : Casual       | |
-| |  10/10 Poses enregistrées        |  |  8/10 Poses enregistrées         | |
-| |  [ Édition Poses ] [ Supprimer ] |  |  [ Édition Poses ] [ Supprimer ] | |
-| +----------------------------------+  +----------------------------------+ |
-|                                                                               |
-| DETAILED POSE GRID (Modèle sélectionné : Elena)                               |
-| +-----------+  +-----------+  +-----------+  +-----------+  +-----------+     |
-| | Pose #1   |  | Pose #2   |  | Pose #3   |  | Pose #4   |  | [ + Pose ]|     |
-| | Face      |  | Profil    |  | 3/4 Droit |  | Assis     |  | Drop Zone |     |
-| +-----------+  +-----------+  +-----------+  +-----------+  +-----------+     |
-+-------------------------------------------------------------------------------+
-```
+Candidate actions are **Add model**, **Open model**, **Set active**, and **Delete model**. Do not render every action as a prominent button on each card. Decide which actions belong on the detail page or a contextual menu. The behavior and safety rules are tracked in [`app/models/TODO.md`](app/models/TODO.md).
 
-#### Éléments et Composants :
-1. **Cards Mannequins (`ModelCard.tsx`) :**
-   * Présente le nom, genre, taille, et la photo miniature principale.
-   * Switch pour activer/désactiver le modèle dans le studio.
-2. **Grille de Poses Permanentes (`PoseGridManager.tsx`) :**
-   * Emplacements dédiés pour chaque angle de vue (Face, Profil, 3/4, Assis, Dos).
-   * **Boutons interactifs :** Remplacer l'image, recadrer, supprimer.
-   * **Badge de statut :** Indique si la pose a déjà été pré-traitée par le pipeline DensePose backend.
+### Model detail (`/models/[id]`)
 
----
+The detail destination owns the model's identity, attributes, default pose, and pose library. Candidate actions include **Edit details**, **Add pose**, **Replace pose**, **Set as default**, and **Remove pose**. Make destructive actions distinct and recoverable where practical. See [`app/models/[id]/TODO.md`](app/models/[id]/TODO.md).
 
-### 5.3. Page 2 : Studio Express (`/studio`) — Workspace Principal
+### Results (`/results`)
 
-Il s'agit du cœur applicatif. Toute l'interaction se concentre sur un panneau central fluide.
+The result destination should show one result clearly, make additional results easy to inspect, and put the most common export action first. The designer must decide whether results are a dedicated route, a Studio stage, or both. Avoid repeating export controls in multiple places. See [`app/results/TODO.md`](app/results/TODO.md).
 
-```
-+-------------------------------------------------------------------------------+
-| STUDIO EXPRESS                                                                |
-+-------------------------------------------------------------------------------+
-| STEP 1: MANNEQUIN SELECTION                                                   |
-| Mode: (X) Auto-Routing via VLM   ( ) Sélection Manuelle                      |
-| Active Target: [ Détection automatique selon le vêtement... ]                 |
-+-------------------------------------------------------------------------------+
-| STEP 2: DROPZONE VÊTEMENTS (Fichier Temporaire)                               |
-| +---------------------------------------------------------------------------+ |
-| |                                                                           | |
-| |        Glissez votre photo de vêtement ici (ou cliquez pour parcourir)    | |
-| |        Formats acceptés: JPG, PNG, WEBP (Max 25 Mo)                       | |
-| |                                                                           | |
-| +---------------------------------------------------------------------------+ |
-+-------------------------------------------------------------------------------+
-| STEP 3: STYLE & RULES MATRIX                                                  |
-| Code Style : [ Chic / Habillé  v ]                                           |
-| Poses : [X] Auto (2-3 poses)  |  Accessoires : [X] Bagues/Montres [Slider: 50%] |
-+-------------------------------------------------------------------------------+
-|                                [ GENERER LES RENDUS (10s) ]                   |
-+-------------------------------------------------------------------------------+
-```
+## 5. Button and action design contract
 
-#### Composants Clés :
-1. **Auto-Router Modèle (`ModelAutoRouter.tsx`) :**
-   * Permet de forcer un modèle ou de laisser l'IA analyser le vêtement (ex : un vêtement homme sélectionnera automatiquement Marcus).
-2. **Dropzone & Pre-Processing Zone (`GarmentDropzone.tsx`) :**
-   * Zone de drag-and-drop HTML5.
-   * Dès le dépôt du fichier, déclenchement du hook `useGarmentProcessor` :
-     * Redimensionnement local max $2048 \times 2048 \text{ px}$.
-     * Appel API léger vers le service de segmentation SAM 2.
-     * Affichage immédiat du masque de détourage dynamique avec possibilité d'ajustement manuel.
-3. **Matrice de Style & Accessoires (`StyleMatrixControls.tsx`) :**
-   * **Sélecteur de style :** Casual, Chic, Streetwear, Business.
-   * **Contrôle d'accessoirisation :** Toggle on/off + Slider d'intensité ($0\%$ à $100\%$) pour décider de l'ajout de bagues, montres, ceintures ou sacs assortis.
-   * **Sélecteur de Poses Périphérique :** Permet de désactiver manuellement une pose spécifique pour ce vêtement.
-4. **Bouton d'Inférence (`GenerationTrigger.tsx`) :**
-   * Bouton d'action principal avec animation d'état (Idle, Processing avec ProgressBar SSE, Complete).
+Before implementing any button, complete an action record with:
 
----
+- Screen and user goal.
+- Exact English label and control type.
+- Preconditions and disabled explanation.
+- Single action performed and data changed.
+- Loading state and duplicate-submission behavior.
+- Success feedback and resulting location.
+- Failure feedback and recovery path.
+- Whether data is discarded, persisted, copied, or downloaded.
+- Keyboard, screen reader, focus, and touch behavior.
 
-### 5.4. Page 3 : Résultats, Retouche & Fast-Listing (`/results`)
+Use one primary action per workflow screen. Secondary actions should be less prominent and shown only where useful. The largest button must represent the most likely next step, not a destructive action. Do not use icon-only controls for important actions.
 
-Dès la fin du traitement, un Drawer dynamique ou une vue dédiée s'ouvre.
-
-```
-+-------------------------------------------------------------------------------+
-| RENDUS GENERES (3 Poses)                         [ Nettoyer & Suivant ]       |
-+-------------------------------------------------------------------------------+
-| +---------------------+ +---------------------+ +---------------------+     |
-| | Pose 1: Face        | | Pose 2: 3/4         | | Pose 3: Assis       |     |
-| | [ Rendu IA Final ]  | | [ Rendu IA Final ]  | | [ Rendu IA Final ]  |     |
-| | [ Retoucher Bague ] | | [ Retoucher Bague ] | | [ Retoucher Bague ] |     |
-| +---------------------+ +---------------------+ +---------------------+     |
-+-------------------------------------------------------------------------------+
-| FAST-LISTING AUTOMATIQUE (Généré par VLM)                                     |
-| Titre : Veste Blazer Croisée en Laine Peignée - Style Chic                    |
-| Description : Magnifique blazer habillé, coupe structurée, couleur bleu nuit. |
-| Mots-clés : #blazer #chic #vinted #outfit #laine                              |
-|                                                                               |
-| [ TELECHARGER PACK IMAGES (ZIP) ]   [ COPIER ANNONCE ]                       |
-+-------------------------------------------------------------------------------+
-```
-
-#### Composants Clés :
-1. **Galerie Comparative de Rendu (`ResultGallery.tsx`) :**
-   * Affichage côte à côte des 2-3 poses générées en haute résolution.
-   * Modal de comparaison avant/après (Image vêtement brut vs. Image vêtement porté sur mannequin).
-2. **Panneau de Retouche Éclair (`InpaintingTouchup.tsx`) :**
-   * Permet de pointer une zone de l'image (ex. le poignet) et de cliquer sur "Enlever la montre" ou "Changer la bague" via micro-inpainting express.
-3. **Bloc Fast-Listing Metadata (`FastListingCard.tsx`) :**
-   * Champs de texte pré-remplis automatiquement par le VLM : Titre, Description, Marque estimée, Matière, État, Mots-clés.
-   * Bouton *Copy-to-Clipboard* unifié pour coller directement dans l'interface Vinted, Shopify ou eBay.
-4. **Action "Nettoyer et Suivant" (`SessionCleanerButton.tsx`) :**
-   * Déclenche la purge complète du `useGarmentStore` et `useGenerationStore`.
-   * Libère les URLs d'objets mémoire et ramène l'utilisateur directement à la Dropzone du Studio Express.
-
----
-
-## 6. Flux de Données & Cycle de Vie des Fichiers
-
-```
-[Utilisateur] 
-     │
-     ▼ (1. Upload Photo Vêtement)
-[GarmentDropzone] ──(Canvas Resize)──► [Memory Blob (Local)]
-     │
-     ▼ (2. Requête API background)
-[SAM2 Segmentation API] ◄─────────────── Send Local File
-     │
-     ▼ (3. Masque Alpha prêt)
-[Preview Segmentée]
-     │
-     ▼ (4. Clic "Générer")
-[Pipeline VTO / DensePose / Relighting] ◄── Combine [Pose Permanente] + [Vêtement Masqué]
-     │
-     ▼ (5. SSE Stream Progression 0% -> 100%)
-[Studio UI ProgressBar]
-     │
-     ▼ (6. Rendu Final & Fast-Listing)
-[ResultGallery] ──(Téléchargement/Copy)──► [Export Utilisateur]
-     │
-     ▼ (7. Clic "Nettoyer")
-[useMemoryCleaner Hook] ──(Revoke Object URLs & Reset Stores)──► [Mémoire Vierge]
-```
-
----
-
-## 7. Directives d'Optimisation Performance UX
-
-1. **Gestion Mémoire Navigateur :**
-   * Utiliser impérativement `URL.revokeObjectURL(url)` à chaque fois qu'un vêtement temporaire ou qu'un résultat intermédiaire est supprimé pour éviter les fuites mémoire dans le navigateur (Memory Leaks).
-2. **Prétraitement d'Image Web Worker :**
-   * Le redimensionnement et l'extraction de métadonnées EXIF des images uploadées doivent s'exécuter dans un Web Worker séparé pour ne pas bloquer le thread principal de l'UI.
-3. **États Dégradés & Feedback Visuel :**
-   * Pendant l'inférence IA ($\approx 8\text{ à }12\text{ secondes}$), afficher un squelette de chargement (*Skeleton Loader*) animé intégrant la silhouette exacte du mannequin sélectionné.
-
-
-   ## 1. Mises à Jour de l'Architecture & Principes Directeurs
-
-### A. Architecture Hybride Tri-Tiers (Client / VPS / Serverless GPU)
-- **Client (WebGPU) :** Exécution locale des traitements légers et détourage instantané ($0\text{ ms}$ de latence réseau).
-- **Backend VPS (Rust avec `axum` + `ort` ou Go avec `fiber`) :** Microservice ultra-léger (RAM $< 100\text{ Mo}$ au repos). Gestion des sessions, stockage temporaire et flux SSE sur HTTP/2. Zéro dépendance Python/PyTorch sur le VPS.
-- **Serverless GPU (RunPod / Fal.ai) :** Inférence lourde de Virtual Try-On (CatVTON / IDM-VTON) déclenchée uniquement à l'acte ($\approx 0,005\text{ \$}$ / génération).
-
-### B. Choix des Modèles IA
-- **Détourage Vêtement :** `RMBG-2.0` (BRIA AI) en ONNX WebGPU exécuté directement dans le navigateur client (remplace SAM 2).
-- **Auto-Routing / Classification :** `FastViT-T8` ou `MobileNetV4-Small` (ONNX, $< 12\text{ Mo}$, inférence $< 5\text{ ms}$).
-- **Fast-Listing VLM :** `Florence-2-base` (230M params) exécuté en temps masqué (background pipeline) pendant le rendu de diffusion.
-
----
-
-## 2. Optimisations Critiques Front-End & Mémoire
-
-### A. Pattern IndexedDB Zero-State (Zustand)
-- **Interdiction :** Stockage direct d'objets `File`, `Blob` ou `URL.createObjectURL()` dans le store Zustand (évite la saturation du V8 Heap).
-- **Règle :** Zustand ne conserve que des identifiants texte (`garmentId`) et métadonnées sérialisables. Les données binaires transitent par `IndexedDB` (`idb-keyval`) et sont traitées via des `ImageBitmap` transférables (*zero-copy transfer*).
-
-### B. Protocole Temps Réel
-- Suppression de `Socket.io`.
-- Utilisation exclusive de **Server-Sent Events (SSE)** sur **HTTP/2 Multiplexé** (`EventSource` client).
-
----
-
-## 3. Arborescence Misa à Jour (`src/`)
+## 6. Front-end organization
 
 ```text
-src/
-├── app/
-│   ├── layout.tsx
+app/
+├── layout.tsx                   # Root metadata, English document, shared frame
+├── page.tsx                     # Redirect to /studio
+├── globals.css                  # Tailwind import, tokens, base and frame styles
+├── studio/
 │   ├── page.tsx
-│   ├── models/
-│   │   ├── page.tsx
-│   │   └── [id]/page.tsx
-│   ├── studio/
-│   │   └── page.tsx                # Page Client dynamique (ssr: false)
-│   └── results/
-│       └── page.tsx
-├── workers/
-│   ├── imageProcessor.worker.ts    # Redimensionnement Canvas (OffscreenCanvas)
-│   └── rmbg2.worker.ts             # Inférence RMBG-2.0 WebGPU (ONNX Runtime Web)
-├── lib/
-│   ├── db.ts                       # Couche IndexedDB Zero-State (idb-keyval)
-│   ├── sseClient.ts                # Client SSE natif
-│   └── utils.ts
-└── store/
-    ├── useModelStore.ts
-    ├── useGarmentStore.ts          # State léger (ID uniquement)
-    ├── useGenerationStore.ts
-    └── useUiStore.ts
+│   └── TODO.md
+├── models/
+│   ├── page.tsx
+│   ├── TODO.md
+│   └── [id]/
+│       ├── page.tsx
+│       └── TODO.md
+└── results/
+    ├── page.tsx
+    └── TODO.md
 
-    <ElicitationsGroup message="Que souhaites-tu ajouter ou préciser dans tes spécifications ?">
-  <Elicitation label="Rédiger la section API endpoints pour le microservice Rust" query="Rédige la section des endpoints API du microservice Rust (Axum) pour la documentation README.md."/>
-  <Elicitation label="Ajouter la configuration Docker du VPS" query="Fournis la configuration Docker / Docker Compose optimisée pour déployer le backend Rust et MinIO sur le VPS."/>
-</ElicitationsGroup>
+src/
+├── components/
+│   ├── layout/                  # Shared navigation and layout primitives
+│   └── mobile/                  # Current workflow prototype, to be redesigned
+├── store/                      # UI/session state only; review persistence boundaries
+├── lib/                        # Future typed API, validation, and shared helpers
+├── hooks/                      # Future client lifecycle and browser integration hooks
+├── types/                      # Future domain and API types
+└── workers/                    # Future isolated image processing, if justified
+```
 
+Keep route files focused on composition. Keep interactive state in small Client Components; prefer Server Components for static route shells and metadata. Do not create empty abstractions solely to match a planned diagram. Introduce each module when its associated TODO is ready to be implemented.
 
-https://github.com/evaspace/SuitME.git
+## 7. State and file lifecycle
 
+The prototype currently places browser `File` objects and object URLs in a Zustand store. This must be reviewed before real uploads are implemented.
 
-1. Principes Ergonomiques Mobile-First
+Required future rules:
 
-    Zone de Pouce Strict (Thumb Zone) : Tous les boutons d'action principaux sont ancrés en bas d'écran (Sticky Bottom Bar) avec une hauteur minimale de 56 px (cible tactile recommandée par Apple Human Interface / Google Material 3).
+- Define whether temporary image bytes live in memory, IndexedDB, or an upload service.
+- Revoke every object URL when its preview is replaced, removed, or no longer needed.
+- Prevent temporary image data from leaking into persistent stores or logs.
+- Reset generation state and garment state together when starting a new item.
+- Preserve the current draft when navigating backward within the workflow.
+- Make cleanup behavior explicit on refresh, tab close, failed generation, and new item.
+- Use typed job states such as `idle`, `queued`, `processing`, `succeeded`, `failed`, and `cancelled` once a real API exists.
 
-    Plein Écran & Vue Unique : Suppression de la grille complexe et des panneaux latéraux. Un seul choix principal par écran.
+See [`src/store/TODO.md`](src/store/TODO.md) before changing the stores.
 
-    Capture Photo Directe : La zone de dépôt (Dropzone) déclenche directement l'appareil photo du smartphone via input capture="environment".
+## 8. Accessibility, responsive behavior, and copy
 
-    Masquage du Bruit Technique : Les métriques de mémoire, les états de connexion WebSocket/SSE et les logs d'inférence sont totalement masqués pour l'utilisateur.
+- Use real buttons for actions and links for navigation.
+- Associate every input with a visible label and useful error message.
+- Keep all actions keyboard-operable with visible focus.
+- Announce generation progress and completion through an appropriate live region.
+- Do not rely on color alone for selection or status.
+- Respect reduced motion and device safe-area insets.
+- Keep primary touch targets at least 56 px high; use 64 px for the main workflow action where layout permits.
+- Use short, concrete English labels and avoid duplicate controls.
 
-2. Dynamic Workflow Mobile (3 Écrans)
-Plaintext
+## 9. Delivery sequence
 
-[ ÉCRAN 1 : VÊTEMENT ]          [ ÉCRAN 2 : STYLE & MANNEQUIN ]        [ ÉCRAN 3 : RÉSULTAT ]
-+-----------------------+       +-----------------------+            +-----------------------+
-|  Dress Me             |       |  Style & Mannequin    |            |  Rendu Généré         |
-|                       |       |                       |            |                       |
-| +-------------------+ |       | MANNEQUIN             |            | +-------------------+ |
-| |                   | |       | [ Photo ]  [ Photo ]  |            | |                   | |
-| |   [ Appareil ]    | |       | Elena      Marcus     |            | |  Image Portée     | |
-| |   Prendre photo   | |       |                       |            | |  Haute Résolution | |
-| |   ou importer     | |       | STYLE                 |            | |                   | |
-| |                   | |       | ( Chic ) ( Street )   |            | +-------------------+ |
-| +-------------------+ |       |                       |            |                       |
-|                       |       | POSES                 |            |  Titre & Prix Vinted  |
-| [ Aperçu détouré ]    |       | [X] Face  [X] 3/4     |            |  Blazer Laine Chic    |
-|                       |       |                       |            |                       |
-| +-------------------+ |       | +-------------------+ |            | +-------------------+ |
-| | SUIVANT  (56px)   | |       | | GÉNERER (56px)    | |            | | COPIER ANNONCE    | |
-| +-------------------+ |       | +-------------------+ |            | +-------------------+ |
-+-----------------------+       +-----------------------+            +-----------------------+
+The project-wide plan in [`TODO.md`](TODO.md) is the source of sequencing. Work one unchecked subtask at a time with design review before feature implementation. A TODO is complete only when its acceptance notes are met; mock behavior must be labeled and must not be mistaken for a real service.
 
-3. Mise à Jour du README.md (Spécifications Front-End Mobile)
+## 10. Current design and interaction decisions (supersedes tentative notes above)
 
-Voici le bloc de spécifications UI/UX mis à jour à remplacer dans ton README.md :
-Markdown
+### Visual direction: vintage resale, green and pink
 
-## 4. Spécifications Ergonomiques & UX/UI Mobile-First
+Use the uploaded Dress Me logo as the brand anchor. The interface should feel like a carefully arranged vintage-resale wardrobe: warm and tactile, clear enough for repeated daily use, and not a replica of Vinted's logo or screens.
 
-### A. Design System Mobile (Tailwind CSS + Shadcn UI)
-- **Cibles tactiles :** Hauteur minimale de `h-14` (56 px) pour tous les boutons d'action.
-- **Formulaires :** Utilisation exclusive de segmented controls (`Tabs` Shadcn) et de cartes sélectionnables géantes à la place des menus déroulants (`Select`).
-- **Ancrage :** Barre d'action principale fixe en bas d'écran (`fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-md`).
+| Token | Value | Use |
+| --- | --- | --- |
+| Forest green | `#315D46` | Primary actions, links, active route, selected model |
+| Deep green | `#244734` | Hover and pressed primary action |
+| Dusty pink | `#D98699` | Small highlights, selection underline, gentle emphasis |
+| Pale pink | `#F7E8EB` | Hover surfaces and subtle accent backgrounds |
+| Warm cream | `#F5F0E7` | App canvas |
+| Paper | `#FFFDF8` | Cards, fields, dialogs |
+| Warm ink | `#2F3029` | Main text |
+| Muted ink | `#737166` | Supporting text |
 
-### B. Parcours Utilisateur Linéaire (3 Étapes)
-1. **Étape 1 — Capture/Upload (`StudioUploadStep.tsx`) :**
-   - Zone de drop géante ouvrant l'appareil photo mobile.
-   - Détourage instantané local (RMBG-2.0 WebGPU) affiché en transparence Alpha dès la sélection.
-2. **Étape 2 — Configuration Express (`StudioConfigStep.tsx`) :**
-   - **Sélecteur Mannequin :** Scroll horizontal de cartes photo compactes ($120 \times 160\text{ px}$).
-   - **Style & Poses :** Boutons-toggles larges pour le style (Chic, Casual, Streetwear). Poses sélectionnées automatiquement selon la catégorie détectée.
-3. **Étape 3 — Export Éclair (`StudioResultStep.tsx`) :**
-   - Carousel swipeable des 2 à 3 visuels générés.
-   - Bouton primaire géant : **« Copier l'Annonce Vinted »** (Copie dans le presse-papier le titre, la description et les tags).
-   - Bouton secondaire : **« Sauvegarder dans la Galerie »** / **« Réinitialiser »**.
+- Use an editorial serif for page titles and card names, with a clean sans-serif for forms, navigation, metadata, and buttons.
+- Use warm paper surfaces, fine beige borders, restrained shadows, rounded but not pill-shaped cards, and large product/model photos.
+- Green is the main action color; pink is an accent, not a second competing primary-action color.
+- Keep buttons at least 56 px high and make the stage's primary action 64 px where the layout permits.
+- Keep page copy in English. Use visible words with any icon; do not make important actions icon-only.
+- Mobile is the design baseline. The model library becomes a photo grid on wide screens; Results uses a selectable list and a larger preview/editor panel.
 
----
+### Action inventory and outcomes
 
-## 5. Composants UI Clés (`src/components/mobile/`)
+| Destination | Control | Preconditions | Outcome and recovery |
+| --- | --- | --- | --- |
+| Studio photo | Choose/replace photo | JPG, PNG, or WEBP; <=25 MB | Preview replaces the old photo only after accepted selection; rejected/unreadable files show an inline error; cancel preserves current photo. |
+| Studio photo | Remove photo | A photo is selected | Revokes its preview and clears the current garment draft; does not touch models or result history. |
+| Studio photo | Choose a model | Valid preview exists | Advances to setup; otherwise disabled. |
+| Studio setup | Choose model | Profile is active and has a default reference pose | Selects exactly one model; incomplete/inactive profiles are repaired from Models. |
+| Studio setup | Choose style | Always available | Stores Casual, Chic, Streetwear, or Business and preserves it on Back. |
+| Studio setup | Back | Setup stage | Returns to photo with the selected photo intact. |
+| Studio setup | Continue | Ready model selected | Saves the selected setup and explains that try-on generation needs a connected provider. |
+| Studio finish | Review results | Sample handoff complete | Opens Results without removing prior history. |
+| Studio finish | Start another item | Sample handoff complete | Clears only the current garment and returns to photo selection. |
+| Model library | Add a model | Always available | Opens a focused form; name required; photo optional; creates a profile and opens its detail page. Duplicate names are allowed. |
+| Model card | Manage model | Profile exists | Opens detail. Ready status requires active + default pose; incomplete profiles remain editable. |
+| Model detail | Edit profile | Detail exists | Save applies the form; Cancel discards unsaved form values. Profile edits preserve poses. |
+| Model detail | Use in Studio | Model exists | Selects the model and opens Studio. Studio still requires a garment photo. |
+| Model detail | Add pose | Profile exists | Accepts supported image; one photo per angle. First pose becomes default; choosing an existing angle replaces that angle. |
+| Pose menu | Replace photo | A photo is selected and valid | Updates only that pose after decoding succeeds; failure leaves the old photo unchanged. |
+| Pose menu | Set as default | Pose is not already default | Moves the single default marker. |
+| Pose menu | Remove pose | Pose exists | Confirmation is shown. Default cannot be removed while another pose exists until a new default is chosen; removing the only pose makes the profile incomplete. |
+| Model detail | Delete model | Profile exists | Confirmation explains profile/photo removal; cancel preserves it; confirm removes it and returns to the library. Result snapshots remain. |
+| Results list | Search | Any saved results | Filters model, style, pose, and listing title; empty search result offers Clear search. |
+| Results list | Sort | Any saved results | Sorts newest, oldest, model name, or style. Newest is default. |
+| Results list | Select result | Any visible result | Shows one selected preview and its listing editor; selected state is visible and semantic. |
+| Results editor | Edit title/description/tags | A result is selected | Each field saves to local browser storage as it changes. Copy always uses current field values. |
+| Results editor | Copy listing | A result is selected | Copies title + description + tags; clipboard denial displays a read-only selectable fallback. |
+| Results editor | Download image | A preview is available | Downloads only the selected preview with a model/pose filename; no pack/ZIP control is shown. |
+| Results | New garment | Always available | Opens Studio while preserving results and model library. |
 
-```text
-src/components/mobile/
-├── MobileLayout.tsx          # Wrapper viewport mobile (safe-area padding)
-├── BottomBar.tsx             # Barre de boutons fixe (Thumb Zone)
-├── StudioUploadStep.tsx      # Dropzone / Camera Trigger + Preview RMBG-2.0
-├── StudioConfigStep.tsx      # Sélecteur Mannequin (Scroll X) & Style Toggles
-├── StudioResultStep.tsx      # Galerie swipeable & Fast-Listing Copy
-└── TouchButton.tsx           # Composant bouton 56px avec feedback haptique
+### Data and online boundary
+
+The model and result stores use versioned local-storage keys; model reference images are resized/compressed before storage. These records are browser-local, are not encrypted or backed up, and do not follow the user to another device. Garment uploads and object URLs remain in memory and can be lost on refresh. The prototype must display these limits plainly.
+
+Before an online deployment, implement owner authentication, protected durable file/database storage, backup and deletion policy, and storage-quota recovery. The current Gemini integration is synchronous and supports a retryable error state; cancellation and durable job recovery remain future work. Selected images are sent to Google only when the user starts generation.
