@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     template: '%s | Dress Me',
   },
   description: 'A personal workspace for virtual try-on images and clothing listings.',
+  verification: {
+    google: 'cL6deASHGBDBw9-x50qoTqFsyCYiw0oH7xvBy4vAlsI',
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   /* Keep dynamic route output streamable while prerendering the rest. */
   cacheComponents: true,
   partialPrefetching: true,

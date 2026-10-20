@@ -76,6 +76,16 @@ Available scripts:
 - `npm run start` - serve a production build.
 - `npm run lint` - run ESLint.
 
+## Run on the local server
+
+The production Compose file builds a minimal standalone Next.js image and publishes the app on the home LAN at `http://192.168.1.64:3000`:
+
+```bash
+docker compose -f compose.production.yaml up -d --build
+```
+
+The ignored `.env.local` file is supplied to the running container for `GEMINI_API_KEY` and is excluded from the image build. This is still a personal-use app without authentication; keep it on the private LAN until an access-control layer is added before public exposure.
+
 ## Planning files
 
 - [Project TODO](TODO.md) - ordered foundation, product, design, and implementation work.

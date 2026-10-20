@@ -2,4 +2,8 @@ node_modules
 .next
 .git
 .env*
-npm-debug.log*
+!.env.example
+*.log
+Dockerfile.test
+compose.dev.yaml
+compose.test.yaml
