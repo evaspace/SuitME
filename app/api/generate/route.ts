@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   const requestId = crypto.randomUUID();
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error('[DressMe Gemini] API key is not configured', { requestId });
+    console.error('[SuitMe Gemini] API key is not configured', { requestId });
     return NextResponse.json({ error: 'Gemini is not configured on this server. Add GEMINI_API_KEY to .env.local and restart the app.' }, { status: 503 });
   }
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     const poseLabel = typeof body.poseLabel === 'string' ? body.poseLabel.slice(0, 80) : 'the reference pose';
     const style = typeof body.style === 'string' ? body.style.slice(0, 40) : 'casual';
 
-    console.info('[DressMe Gemini] generation started', { requestId, model: MODEL, style });
+    console.info('[SuitMe Gemini] generation started', { requestId, model: MODEL, style });
     const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     if (!upstream.ok) {
       const providerBody = await upstream.json().catch(() => null) as { error?: { message?: string; status?: string } } | null;
       const providerStatus = providerBody?.error?.status ?? 'UNKNOWN';
-      console.error('[DressMe Gemini] provider request failed', { requestId, httpStatus: upstream.status, providerStatus });
+      console.error('[SuitMe Gemini] provider request failed', { requestId, httpStatus: upstream.status, providerStatus });
       const message = upstream.status === 401 || upstream.status === 403
         ? 'Gemini rejected the API key. Check that it is valid and has Gemini API access.'
         : upstream.status === 429
@@ -94,11 +94,11 @@ export async function POST(request: Request) {
     const parts = result.candidates?.flatMap((candidate) => candidate.content?.parts ?? []) ?? [];
     const image = parts.find((part) => part.inlineData?.data)?.inlineData;
     if (!image?.data || !image.mimeType?.startsWith('image/')) {
-      console.error('[DressMe Gemini] response contained no image', { requestId, finishReason: result.candidates?.[0]?.finishReason, blockReason: result.promptFeedback?.blockReason });
+      console.error('[SuitMe Gemini] response contained no image', { requestId, finishReason: result.candidates?.[0]?.finishReason, blockReason: result.promptFeedback?.blockReason });
       return NextResponse.json({ error: 'Gemini did not return an image for this request. Try different photos or adjust the model reference.' , requestId }, { status: 502 });
     }
 
-    console.info('[DressMe Gemini] generation completed', { requestId, mimeType: image.mimeType, outputLength: image.data.length });
+    console.info('[SuitMe Gemini] generation completed', { requestId, mimeType: image.mimeType, outputLength: image.data.length });
     return NextResponse.json({
       imageDataUrl: `data:${image.mimeType};base64,${image.data}`,
       listing: parseListingDraft(parts.map((part) => part.text ?? '').filter(Boolean)),
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     if (cause instanceof SyntaxError) return NextResponse.json({ error: 'The generation request was invalid.' }, { status: 400 });
     const message = cause instanceof Error ? cause.message : 'Unknown server error';
     const timedOut = cause instanceof Error && cause.name === 'TimeoutError';
-    console.error('[DressMe Gemini] request crashed', { requestId, error: message });
+    console.error('[SuitMe Gemini] request crashed', { requestId, error: message });
     return NextResponse.json({ error: timedOut ? 'Image generation took too long. Try again.' : message, requestId }, { status: timedOut ? 504 : 400 });
   }
 }

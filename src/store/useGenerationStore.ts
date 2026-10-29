@@ -39,4 +39,4 @@ export const useGenerationStore = create<GenerationStore>()(persist((set) => ({
   addResult: (result) => set((state) => ({ results: [...state.results, result] })),
   addResults: (results) => set((state) => ({ results: [...state.results, ...results] })),
   clearResults: () => set({ results: [], progress: 0, isGenerating: false }),
-}), { name: 'dress-me-results-v1', storage: createJSONStorage(() => localStorage), skipHydration: true }));
+}), { name: 'suitme-results-v1', storage: createJSONStorage(() => localStorage), skipHydration: true }));

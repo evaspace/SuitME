@@ -16,7 +16,7 @@ export default function ModelsPage() {
   const [error, setError] = useState('');
 
   async function handleAdd(formData: FormData) {
-    console.info('[DressMe models] create started');
+    console.info('[SuitMe models] create started');
     setError('');
     const name = String(formData.get('name') ?? '').trim();
     if (!name) return setError('Enter a name for this model.');
@@ -26,7 +26,7 @@ export default function ModelsPage() {
       if (!isSupportedImage(photo)) return setError('Choose a JPG, PNG, or WEBP image smaller than 25 MB.');
       try { imageUrl = await readImageForLocalUse(photo); }
       catch (cause) {
-        console.error('[DressMe models] reference image processing failed', cause);
+        console.error('[SuitMe models] reference image processing failed', cause);
         return setError(cause instanceof Error ? cause.message : 'This image could not be opened.');
       }
     }
@@ -39,11 +39,11 @@ export default function ModelsPage() {
       defaultStyle: String(formData.get('defaultStyle')) as ModelStyle,
       poses: imageUrl ? [{ id: createId(), category: 'front_standing', imageUrl, isDefault: true }] : [],
       });
-      console.info('[DressMe models] profile saved locally', { id, hasReference: Boolean(imageUrl) });
+      console.info('[SuitMe models] profile saved locally', { id, hasReference: Boolean(imageUrl) });
       setIsAdding(false);
       router.push(`/models/${id}`);
     } catch (cause) {
-      console.error('[DressMe models] profile save or navigation failed', cause);
+      console.error('[SuitMe models] profile save or navigation failed', cause);
       setError('The model could not be saved. Check available browser storage and try again.');
     }
   }

@@ -11,8 +11,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
       <a className="skip-link" href="#main-content">Skip to content</a>
       <header className="app-header">
         <div className="app-header-inner">
-          <Link className="app-brand" href="/studio" aria-label="Dress Me home">
-            <Image className="app-brand-logo" src="/dress_me_logo.png" alt="Dress Me" width={160} height={142} priority />
+          <Link className="app-brand" href="/studio" aria-label="SuitMe home">
+            <Image className="app-brand-logo" src="/suitme_logo.svg" alt="SuitMe" width={160} height={142} priority unoptimized />
           </Link>
           <Suspense fallback={<AppNavigationFallback />}>
             <AppNavigation />

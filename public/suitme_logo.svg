@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 231" role="img" aria-labelledby="title">
+  <title id="title">SuitMe</title>
+  <!-- Green arch, as in the original mark -->
+  <path d="M58 150 V78 a72 62 0 0 1 144 0 V150" fill="none" stroke="#8dc26f" stroke-width="9" stroke-linecap="round"/>
+  <!-- Hanger -->
+  <g fill="none" stroke="#e07a95" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M122 48 a8 8 0 1 1 8 8 v7"/>
+    <path d="M130 63 L88 88 h84 Z"/>
+  </g>
+  <!-- Suit jacket -->
+  <g stroke-linejoin="round">
+    <path d="M96 94 L114 90 L130 132 L146 90 L164 94 L174 154 H86 Z" fill="#e07a95"/>
+    <path d="M114 90 L130 132 L146 90 Z" fill="#ffffff"/>
+    <path d="M114 90 L122 112 L114 116 Z M146 90 L138 112 L146 116 Z" fill="#c95c7a"/>
+    <path d="M130 100 L126 106 L130 128 L134 106 Z" fill="#24306e"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="130" y="212" text-anchor="middle" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="46" font-weight="700" fill="#24306e" letter-spacing="1">SuitMe</text>
+</svg>

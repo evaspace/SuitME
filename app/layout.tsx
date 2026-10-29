@@ -7,8 +7,8 @@ import { AppFrame } from '@/components/layout/AppFrame';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Dress Me | Personal Try-On Studio',
-    template: '%s | Dress Me',
+    default: 'SuitMe | Personal Try-On Studio',
+    template: '%s | SuitMe',
   },
   description: 'A personal workspace for virtual try-on images and clothing listings.',
   verification: {

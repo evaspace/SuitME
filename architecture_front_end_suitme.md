@@ -1,10 +1,10 @@
-# Dress Me - Web Architecture and UX Specification
+# SuitMe - Web Architecture and UX Specification
 
 **Status:** working product and design brief. Items described as tentative still need review with the designer and developer. This document defines the foundation and future work; it does not claim that the listed product behavior is implemented.
 
 ## 1. Product goal
 
-Dress Me is a personal web workspace for turning a clothing photo into a small pack of virtual try-on images and reusable listing text. The core value is a short, predictable workflow that can be repeated item after item.
+SuitMe is a personal web workspace for turning a clothing photo into a small pack of virtual try-on images and reusable listing text. The core value is a short, predictable workflow that can be repeated item after item.
 
 ### Design principles
 
@@ -176,7 +176,7 @@ The project-wide plan in [`TODO.md`](TODO.md) is the source of sequencing. Work 
 
 ### Visual direction: vintage resale, green and pink
 
-Use the uploaded Dress Me logo as the brand anchor. The interface should feel like a carefully arranged vintage-resale wardrobe: warm and tactile, clear enough for repeated daily use, and not a replica of Vinted's logo or screens.
+Use the uploaded SuitMe logo as the brand anchor. The interface should feel like a carefully arranged vintage-resale wardrobe: warm and tactile, clear enough for repeated daily use, and not a replica of Vinted's logo or screens.
 
 | Token | Value | Use |
 | --- | --- | --- |

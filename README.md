@@ -1,6 +1,6 @@
-# Dress Me
+# SuitMe
 
-Dress Me is a personal, mobile-first web workspace for preparing virtual try-on images and listing content for clothing items.
+SuitMe is a personal, mobile-first web workspace for preparing virtual try-on images and listing content for clothing items.
 
 The repository contains an interactive personal-use web app. Model profiles, reference photos, results, and edited listing fields are saved in this browser. Garment uploads remain temporary in memory. Try-on generation uses Google Gemini image generation through a server-side route.
 
@@ -46,7 +46,7 @@ src/
 
 README.md
 TODO.md                         # Product decisions and remaining online-release work
-architecture_front_end_dress_me.md
+architecture_front_end_suitme.md
 ```
 
 Each route folder records implemented interaction decisions and remaining online-release work.
@@ -89,7 +89,7 @@ The ignored `.env.local` file is supplied to the running container for `GEMINI_A
 ## Planning files
 
 - [Project TODO](TODO.md) - ordered foundation, product, design, and implementation work.
-- [Architecture and UX specification](architecture_front_end_dress_me.md) - product decisions, visual direction, route behavior, and online-release requirements.
+- [Architecture and UX specification](architecture_front_end_suitme.md) - product decisions, visual direction, route behavior, and online-release requirements.
 - [Studio TODO](app/studio/TODO.md)
 - [Model library TODO](app/models/TODO.md)
 - [Model detail TODO](<app/models/[id]/TODO.md>)

@@ -34,7 +34,7 @@ export default function ModelDetailPage() {
   }
 
   async function addPose(event: FormEvent<HTMLFormElement>) {
-    console.info('[DressMe models] add reference started', { modelId: id });
+    console.info('[SuitMe models] add reference started', { modelId: id });
     event.preventDefault(); setError('');
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -43,7 +43,7 @@ export default function ModelDetailPage() {
     if (!isSupportedImage(file)) return setError('Choose a JPG, PNG, or WEBP image smaller than 25 MB.');
     try {
       const imageUrl = await readImageForLocalUse(file);
-      console.debug('[DressMe images] reference resized', { name: file.name, bytes: file.size, outputLength: imageUrl.length });
+      console.debug('[SuitMe images] reference resized', { name: file.name, bytes: file.size, outputLength: imageUrl.length });
       const category = String(data.get('category')) as PoseCategory;
       const duplicate = currentModel.poses.some((pose) => pose.category === category);
       const previousPose = currentModel.poses.find((pose) => pose.category === category);
@@ -51,7 +51,7 @@ export default function ModelDetailPage() {
       updatePoses(id, [...currentModel.poses.filter((entry) => entry.category !== category), pose]);
       setAddingPose(false); setNotice(duplicate ? `Replaced the ${poseLabel(category)} reference.` : 'Reference pose added.');
     } catch (cause) {
-      console.error('[DressMe models] reference save failed', cause);
+      console.error('[SuitMe models] reference save failed', cause);
       setError(cause instanceof Error ? cause.message : 'This image could not be opened.');
     }
   }

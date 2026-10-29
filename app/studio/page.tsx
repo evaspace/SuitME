@@ -32,7 +32,7 @@ export default function Studio() {
     setGenerationError('');
     generationStore.setIsGenerating(true);
     setStep(3);
-    console.info('[DressMe Studio] generation request prepared', { modelId: model.id, hasGarment: true, pose: pose.category });
+    console.info('[SuitMe Studio] generation request prepared', { modelId: model.id, hasGarment: true, pose: pose.category });
     try {
       const garmentDataUrl = await readImageForLocalUse(garmentFile);
       const response = await fetch('/api/generate', {
@@ -68,10 +68,10 @@ export default function Studio() {
         listingDescription: payload.listing?.listingDescription ?? '',
         listingTags: payload.listing?.listingTags ?? '',
       });
-      console.info('[DressMe Studio] generated result saved locally', { requestId: payload.requestId });
+      console.info('[SuitMe Studio] generated result saved locally', { requestId: payload.requestId });
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : 'Something went wrong while generating your try-on.';
-      console.error('[DressMe Studio] generation failed', cause);
+      console.error('[SuitMe Studio] generation failed', cause);
       setGenerationError(message);
     } finally {
       generationStore.setIsGenerating(false);

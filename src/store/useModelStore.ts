@@ -55,4 +55,4 @@ export const useModelStore = create<ModelStore>()(persist((set, get) => ({
   deleteModel: (id) => set((state) => ({ models: state.models.filter((model) => model.id !== id), selectedModelId: state.selectedModelId === id ? null : state.selectedModelId })),
   updatePoses: (modelId, poses) => set((state) => ({ models: state.models.map((model) => model.id === modelId ? { ...model, poses } : model) })),
   selectModel: (id) => set({ selectedModelId: id }),
-}), { name: 'dress-me-models-v1', storage: createJSONStorage(() => localStorage), skipHydration: true }));
+}), { name: 'suitme-models-v1', storage: createJSONStorage(() => localStorage), skipHydration: true }));

@@ -1,4 +1,4 @@
-# Dress Me - Product and Delivery Checklist
+# SuitMe - Product and Delivery Checklist
 
 This checklist records implemented front-end decisions and the remaining work needed before the personal prototype can become an online product.
 
@@ -17,7 +17,7 @@ This checklist records implemented front-end decisions and the remaining work ne
 
 ## Design direction - complete
 
-- [x] Use the uploaded Dress Me logo.
+- [x] Use the uploaded SuitMe logo.
 - [x] Use a warm second-hand-fashion palette: forest green `#315D46`, soft pink `#D98699`, cream `#F5F0E7`, paper `#FFFDF8`, and warm ink `#2F3029`.
 - [x] Use Fraunces editorial headings with Plus Jakarta Sans interface typography.
 - [x] Use soft paper surfaces, warm borders, subtle shadows, and restrained pink details; keep green for primary actions and selected states.

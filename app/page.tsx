@@ -8,7 +8,7 @@ export default function Page() {
           Personal virtual try-on studio
         </p>
         <h1 className="font-display text-5xl leading-tight tracking-tight sm:text-6xl">
-          Dress Me
+          SuitMe
         </h1>
         <p className="max-w-2xl text-lg leading-8 text-[#737166]">
           A personal workspace for virtual try-on images and clothing listings.
