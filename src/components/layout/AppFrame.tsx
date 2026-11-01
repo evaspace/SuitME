@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import type { ReactNode } from 'react';
 import { AppNavigation } from './AppNavigation';
 import { SwipeNavigation } from './SwipeNavigation';
+import { Footer } from './Footer';
 
 export function AppFrame({ children }: { children: ReactNode }) {
   return (
@@ -22,6 +23,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
       <Suspense fallback={<main id="main-content" className="app-main">{children}</main>}>
         <SwipeNavigation>{children}</SwipeNavigation>
       </Suspense>
+      <Footer />
     </div>
   );
 }
@@ -32,6 +34,7 @@ function AppNavigationFallback() {
       <Link href="/studio">Studio</Link>
       <Link href="/models">Models</Link>
       <Link href="/results">Results</Link>
+      <a href="/blog/">Blog</a>
     </nav>
   );
 }

@@ -556,3 +556,12 @@ select {
 .pose-menu summary, .remove-photo, .dialog-close, .back-link { min-height: 56px; }
 .dialog-close { width: 56px; }
 @media (max-width: 620px) { .app-nav a { min-height: 56px; } }
+
+/* Footer (mirrors the pierref.eu footer) */
+.app-footer { margin-top: var(--space-4); padding: var(--space-4) var(--space-2) var(--space-2); text-align: center; overflow: hidden; border-top: 1px solid rgb(49 93 70 / 18%); }
+.app-footer-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem 1.6rem; margin-bottom: var(--space-3); font-size: var(--text-small); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.app-footer-nav a { color: var(--brand-deep); text-decoration: none; }
+.app-footer-nav a:hover, .app-footer-nav a:focus-visible { color: var(--pink); text-decoration: underline; }
+.app-footer-review { max-width: 520px; margin: 0 auto var(--space-3); }
+.app-footer-wordmark { font-family: var(--font-display); font-weight: 900; font-size: 15vw; line-height: .8; color: transparent; -webkit-text-stroke: 2px rgb(49 93 70 / 35%); user-select: none; }
+.app-footer-legal { margin: var(--space-2) 0 0; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: rgb(47 48 41 / 65%); }

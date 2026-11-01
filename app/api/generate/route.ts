@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const MODEL = 'gemini-3.1-flash-image';
+const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image';
 const MAX_IMAGE_BASE64_LENGTH = 8 * 1024 * 1024;
 
 interface ImageInput {
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       const message = upstream.status === 401 || upstream.status === 403
         ? 'Gemini rejected the API key. Check that it is valid and has Gemini API access.'
         : upstream.status === 429
-          ? 'Gemini is temporarily rate-limited or the account quota is exhausted. Try again later.'
+          ? 'Gemini quota exhausted for this image model (HTTP 429). The key is valid: the Google project has no quota left for it. Wait for the reset, enable billing on the Google project, or set GEMINI_IMAGE_MODEL to another image model.'
           : upstream.status >= 500
             ? 'Gemini is temporarily unavailable. Try again in a moment.'
             : 'Gemini could not generate this try-on. Check the selected photos and try again.';

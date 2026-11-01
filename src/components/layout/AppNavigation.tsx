@@ -29,6 +29,7 @@ export function AppNavigation() {
           </Link>
         );
       })}
+      <a href="/blog/">Blog</a>
     </nav>
   );
 }
