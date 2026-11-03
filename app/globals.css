@@ -24,6 +24,7 @@
   --brand-deep: #244734;
   --pink: #d98699;
   --pink-pale: #f7e8eb;
+  --loud: #ff5a36;
   --ink: #2f3029;
   --muted-ink: #737166;
   --surface: #fffdf8;
@@ -378,7 +379,7 @@ select {
 .app-header { background: rgb(255 253 248 / 96%); }
 .app-brand-logo { display: block; width: clamp(92px, 13vw, 126px); height: auto; flex: 0 0 auto; object-fit: contain; }
 .app-brand-mark { display: none; }
-.app-nav a[aria-current="page"] { background: var(--brand); box-shadow: inset 0 -3px 0 var(--pink); }
+.app-nav a[aria-current="page"] { background: var(--brand); box-shadow: inset 0 -3px 0 var(--loud); }
 .app-nav a:hover { background: var(--pink-pale); color: var(--brand-deep); }
 .skip-link { position: absolute; z-index: 100; top: .5rem; left: .5rem; padding: .8rem 1rem; transform: translateY(-160%); border-radius: .75rem; color: white; background: var(--brand-deep); }
 .skip-link:focus { transform: translateY(0); }
@@ -529,7 +530,7 @@ select {
 .studio-step-indicator li.is-current > span:first-child { border-color: var(--brand); color: white; background: var(--brand); }
 .studio-step-indicator li:not(:last-child)::after { width: clamp(10px, 3vw, 32px); height: 1px; margin-inline: .2rem; background: var(--line); content: ""; }
 .model-choice { display: flex; min-width: 150px; min-height: 180px; flex: 1 0 150px; flex-direction: column; align-items: center; gap: .6rem; padding: .8rem; border: 1px solid var(--line); border-radius: .9rem; background: var(--surface); cursor: pointer; }
-.model-choice[aria-pressed="true"], .model-choice.is-selected { border: 2px solid var(--brand); background: #eef3e9; box-shadow: inset 0 -4px 0 var(--pink); }
+.model-choice[aria-pressed="true"], .model-choice.is-selected { border: 2px solid var(--brand); background: #eef3e9; box-shadow: inset 0 -4px 0 var(--loud); }
 .model-choice-image { position: relative; width: 88px; height: 100px; overflow: hidden; border-radius: .6rem; background: #eee7db; }
 .model-choice-image img { object-fit: cover; }
 .active-toggle { display: flex; min-height: 54px; flex-direction: row; align-items: center; gap: .6rem; }
@@ -537,7 +538,7 @@ select {
 .studio-finish { display: grid; align-content: start; gap: .75rem; padding-bottom: 3rem; }
 .finish-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .75rem; }
 .processing-indicator { height: 10px; overflow: hidden; margin-bottom: .85rem; border-radius: 99px; background: #e9e1d6; }
-.processing-indicator span { display: block; width: 35%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--brand), var(--pink)); animation: processing-sweep 1.4s ease-in-out infinite alternate; }
+.processing-indicator span { display: block; width: 35%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--brand), var(--loud)); animation: processing-sweep 1.4s ease-in-out infinite alternate; }
 @keyframes processing-sweep { from { transform: translateX(-20%); } to { transform: translateX(210%); } }
 @media (max-width: 620px) {
   .photo-source-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
@@ -561,7 +562,7 @@ select {
 .app-footer { margin-top: var(--space-4); padding: var(--space-4) var(--space-2) var(--space-2); text-align: center; overflow: hidden; border-top: 1px solid rgb(49 93 70 / 18%); }
 .app-footer-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem 1.6rem; margin-bottom: var(--space-3); font-size: var(--text-small); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .app-footer-nav a { color: var(--brand-deep); text-decoration: none; }
-.app-footer-nav a:hover, .app-footer-nav a:focus-visible { color: var(--pink); text-decoration: underline; }
+.app-footer-nav a:hover, .app-footer-nav a:focus-visible { color: var(--loud); text-decoration: underline; }
 .app-footer-review { max-width: 520px; margin: 0 auto var(--space-3); }
 .app-footer-wordmark { font-family: var(--font-display); font-weight: 900; font-size: 15vw; line-height: .8; color: transparent; -webkit-text-stroke: 2px rgb(49 93 70 / 35%); user-select: none; }
 .app-footer-legal { margin: var(--space-2) 0 0; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: rgb(47 48 41 / 65%); }
