@@ -12,11 +12,9 @@ export const UploadStep = ({ onNext }: UploadStepProps) => {
   const { previewUrl, setGarmentFile, clearGarmentSession } = useGarmentStore();
   const [error, setError] = useState('');
   const [isChecking, setIsChecking] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const input = event.currentTarget;
-    const file = input.files?.[0];
-    input.value = '';
+  const acceptFile = async (file: File | undefined) => {
     if (!file) return;
     setError(''); setIsChecking(true);
     try { await validateImageFile(file); setGarmentFile(file); }
@@ -24,22 +22,35 @@ export const UploadStep = ({ onNext }: UploadStepProps) => {
     finally { setIsChecking(false); }
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    input.value = '';
+    void acceptFile(file);
+  };
+
+  // The whole stage takes the drop, so a file released next to the panel never makes the browser open it.
+  const dropProps = {
+    onDragOver: (event: React.DragEvent) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; setIsDragging(true); },
+    onDragLeave: (event: React.DragEvent) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsDragging(false); },
+    onDrop: (event: React.DragEvent) => { event.preventDefault(); setIsDragging(false); void acceptFile(event.dataTransfer.files[0]); },
+  };
+
   return (
-    <div className="studio-stage">
+    <div className="studio-stage" {...dropProps}>
       <section className="page-shell studio-page">
-        <p className="eyebrow">Step 1 of 3 · Garment</p>
         <h1 className="page-heading">Start with one clothing photo</h1>
         <p className="page-intro">Choose a clear photo of the item. A plain background helps; you can use a camera or an existing image.</p>
-        <div className="upload-panel" onClick={(event) => {
+        <div className={isDragging ? 'upload-panel is-dragging' : 'upload-panel'} onClick={(event) => {
           const target = event.target;
           if (target instanceof Element && target.closest('button, label, input, a')) return;
           document.getElementById('garment-gallery-input')?.click();
         }}>
-          {previewUrl ? <div className="upload-preview"><Image src={previewUrl} alt="Selected clothing photo preview" fill sizes="(max-width: 700px) 90vw, 60vw" unoptimized /></div> : <div className="upload-placeholder" aria-hidden="true"><span>＋</span><p>Your clothing photo will appear here</p></div>}
+          {previewUrl ? <div className="upload-preview"><Image src={previewUrl} alt="Selected clothing photo preview" fill sizes="(max-width: 700px) 90vw, 60vw" unoptimized /></div> : <div className="upload-placeholder" aria-hidden="true"><p>Drop a clothing photo here</p></div>}
           <div className="photo-source-actions">
-            <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="photo-input" id="garment-camera-input" onChange={handleFileChange} />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" className="photo-input" id="garment-camera-input" onChange={handleFileChange} />
             <label htmlFor="garment-camera-input" className="btn btn-primary upload-button">Take a photo</label>
-            <input type="file" accept="image/jpeg,image/png,image/webp" className="photo-input" id="garment-gallery-input" onChange={handleFileChange} />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" className="photo-input" id="garment-gallery-input" onChange={handleFileChange} />
             <label htmlFor="garment-gallery-input" className="btn btn-outline upload-button">Choose from gallery</label>
           </div>
           <p className="field-help">JPG, PNG or WEBP · Up to 25 MB</p>

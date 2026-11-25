@@ -14,7 +14,7 @@ interface ResultStepProps {
 export const ResultStep = ({ isGenerating, error, onRetry, onBack, onRestart }: ResultStepProps) => (
   <section className="page-shell studio-finish" aria-live="polite">
     <StudioProgress current={3} />
-    <p className="eyebrow">Studio</p>
+    
     {isGenerating ? <>
       <h1 className="page-heading">Creating your try-on</h1>
       <p className="page-intro">Gemini is combining your garment photo with the selected model reference.</p>

@@ -33,11 +33,13 @@ export function readImageForLocalUse(file: File): Promise<string> {
 }
 
 export function isSupportedImage(file: File): boolean {
-  return ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) && file.size <= 25 * 1024 * 1024;
+  // HEIC/HEIF (Samsung/iPhone) or empty type: allowed here, validateImageFile checks the browser can decode it.
+  const typeOk = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', ''].includes(file.type.toLowerCase());
+  return typeOk && file.size <= 25 * 1024 * 1024;
 }
 
 export async function validateImageFile(file: File): Promise<void> {
-  if (!isSupportedImage(file)) throw new Error('Choose a JPG, PNG, or WEBP image smaller than 25 MB.');
+  if (!isSupportedImage(file)) throw new Error("Choose a JPG, PNG, or WEBP image smaller than 25 MB. On Samsung, turn off 'High efficiency pictures' in the camera settings.");
   const objectUrl = URL.createObjectURL(file);
   try {
     await new Promise<void>((resolve, reject) => {
@@ -45,7 +47,7 @@ export async function validateImageFile(file: File): Promise<void> {
       image.onload = () => image.naturalWidth > 0 && image.naturalHeight > 0
         ? resolve()
         : reject(new Error('This image has no readable dimensions. Choose another photo.'));
-      image.onerror = () => reject(new Error('This image could not be opened. Choose another photo.'));
+      image.onerror = () => reject(new Error('This image could not be opened (HEIC?). Turn off \'High efficiency pictures\' in your camera settings, or choose a JPG.'));
       image.src = objectUrl;
     });
   } finally {

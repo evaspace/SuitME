@@ -31,7 +31,7 @@ export const ConfigStep = ({ onNext, onBack }: ConfigStepProps) => {
       <div className="flex-1 overflow-y-auto pb-28">
         <div className="page-shell space-y-6">
           <StudioProgress current={2} />
-          <p className="eyebrow">Step 2 of 3 · Try-on setup</p>
+          
           <h1 className="page-heading">Choose a model and style</h1>
           <p className="page-intro">Select an active profile and choose the look you want to preview.</p>
           <p className="field-help">Your garment and model photos are sent to Google Gemini to generate the try-on.</p>

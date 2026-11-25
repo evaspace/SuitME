@@ -1,6 +1,6 @@
 import './globals.css';
 import '@fontsource-variable/plus-jakarta-sans';
-import '@fontsource-variable/fraunces';
+import '@fontsource/anton';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Script from 'next/script';

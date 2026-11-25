@@ -52,7 +52,7 @@ export default function ModelsPage() {
     <section className="page-shell">
       <header className="page-title-row">
         <div>
-          <p className="eyebrow">Studio</p>
+          
           <h1 className="page-heading">Models</h1>
         </div>
         {models.length > 0 && <button className="btn btn-primary" type="button" onClick={() => setIsAdding(true)}>Add a model</button>}
@@ -88,7 +88,7 @@ export default function ModelsPage() {
       {isAdding && <div className="dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsAdding(false); }}>
         <section className="dialog-card" role="dialog" aria-modal="true" aria-labelledby="add-model-heading">
           <button className="dialog-close" type="button" aria-label="Close" onClick={() => setIsAdding(false)}>×</button>
-          <p className="eyebrow">New profile</p><h2 id="add-model-heading">Add a model</h2>
+          <h2 id="add-model-heading">Add a model</h2>
           <form action={handleAdd} className="form-grid">
             <label className="field field-wide">Model name<input name="name" required maxLength={60} autoFocus placeholder="e.g. Alex" /></label>
             <label className="field">Profile<select name="gender" defaultValue="unisex"><option value="unisex">Unisex</option><option value="female">Female</option><option value="male">Male</option></select></label>

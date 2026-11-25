@@ -11,7 +11,7 @@
 :root {
   color-scheme: light;
   --font-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
-  --font-display: 'Fraunces Variable', Fraunces, Georgia, serif;
+  --font-display: Anton, 'Arial Narrow', Impact, sans-serif;
   --space-1: clamp(.45rem, .35rem + .25vw, .6rem);
   --space-2: clamp(.75rem, .6rem + .45vw, 1rem);
   --space-3: clamp(1rem, .8rem + .7vw, 1.4rem);
@@ -20,17 +20,21 @@
   --text-body: clamp(.94rem, .88rem + .22vw, 1.04rem);
   --text-title: clamp(2rem, 1.45rem + 3vw, 3.4rem);
   --radius-card: clamp(1rem, .8rem + .5vw, 1.4rem);
-  --brand: #315d46;
-  --brand-deep: #244734;
-  --pink: #d98699;
-  --pink-pale: #f7e8eb;
-  --ink: #2f3029;
-  --muted-ink: #737166;
-  --surface: #fffdf8;
-  --canvas: #f5f0e7;
-  --line: #e4dacb;
-  --danger: #a33e48;
-  --focus: #b85f7a;
+  /* Two loud colours (pink field, yellow action) on black ink, after holy.com. */
+  --pink: #ff4fa0;
+  --pink-deep: #f0278a;
+  --yellow: #ffe500;
+  --ink: #111111;
+  --paper: #ffffff;
+  --brand: var(--ink);
+  --brand-deep: #000000;
+  --pink-pale: #ffd3e8;
+  --muted-ink: #111111;
+  --surface: var(--paper);
+  --canvas: var(--pink);
+  --line: #111111;
+  --danger: #b00020;
+  --focus: #111111;
 }
 
 * {
@@ -89,7 +93,6 @@ a {
   z-index: 20;
   border-bottom: 1px solid var(--line);
   background: rgb(255 255 255 / 94%);
-  backdrop-filter: blur(12px);
 }
 
 .app-header-inner {
@@ -270,7 +273,6 @@ a {
   padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
   background: rgb(255 255 255 / 96%);
-  backdrop-filter: blur(12px);
 }
 .action-bar .btn:only-child { width: min(100%, 48rem); min-height: 72px; }
 
@@ -565,3 +567,67 @@ select {
 .app-footer-review { max-width: 520px; margin: 0 auto var(--space-3); }
 .app-footer-wordmark { font-family: var(--font-display); font-weight: 900; font-size: 15vw; line-height: .8; color: transparent; -webkit-text-stroke: 2px rgb(49 93 70 / 35%); user-select: none; }
 .app-footer-legal { margin: var(--space-2) 0 0; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: rgb(47 48 41 / 65%); }
+
+/* Holy-inspired theme: flat pink ground, yellow actions, black ink, heavy condensed headings.
+   Layout and button positions above are unchanged; this block only restyles. */
+body { color: var(--ink); background: var(--pink); }
+.app-header { border-bottom: 0; background: var(--yellow); }
+.app-nav a { color: var(--ink); font-weight: 800; }
+.app-nav a:hover { color: var(--ink); background: var(--paper); }
+.app-nav a[aria-current="page"] { color: var(--yellow); background: var(--ink); box-shadow: none; }
+.page-heading, .model-name-row h2, .pose-info h3, .empty-card h2, .empty-card h3, .dialog-card h2, .profile-form h2, .listing-editor h2, .section-title-row h2 { font-family: var(--font-display); font-weight: 400; letter-spacing: 0; line-height: .95; }
+.page-heading { font-size: clamp(2.6rem, 1.6rem + 4.6vw, 5.5rem); margin-bottom: .9rem; }
+.page-intro, .field-help, .empty-card p, .model-card-content > p, .result-meta, .result-list-copy span, .result-list-copy time, .danger-zone p, .image-unavailable { color: var(--ink); }
+.page-intro { font-size: clamp(1.05rem, .95rem + .4vw, 1.3rem); font-weight: 550; }
+
+.btn { border: 0; border-radius: 999px; font-weight: 800; }
+.btn-primary { color: var(--ink); background: var(--yellow); box-shadow: none; }
+.btn-primary:hover:not(:disabled) { color: var(--yellow); background: var(--ink); }
+.btn-primary:disabled { color: #6b6b6b; background: #d9d9d9; }
+.btn-outline { color: var(--ink); background: var(--pink-pale); }
+.btn-outline:hover:not(:disabled) { color: var(--paper); background: var(--ink); }
+.text-link { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+.surface-card, .model-card, .pose-card, .result-detail, .empty-card, .dialog-card, .result-list-card, .model-choice { border: 0; border-radius: 0; background: var(--paper); box-shadow: none; }
+.dialog-card { box-shadow: 0 20px 60px rgb(0 0 0 / 30%); }
+.model-card:hover { transform: translateY(-3px); box-shadow: none; }
+.model-card-image, .pose-image, .result-thumb, .result-preview, .model-choice-image, .upload-placeholder, .upload-preview { border-radius: 0; background: var(--pink-pale); }
+.empty-card-action-area:hover { box-shadow: none; outline: 4px solid var(--yellow); }
+.empty-illustration { display: none; }
+.result-list-card:hover, .result-list-card.is-selected, .model-choice[aria-pressed="true"], .model-choice.is-selected { border: 0; background: var(--yellow); box-shadow: none; }
+.selection-mark { border: 0; color: var(--yellow); background: var(--ink); }
+.status-pill { border: 0; color: var(--paper); background: var(--ink); }
+.status-ready { color: var(--ink); background: var(--yellow); }
+.pose-menu summary, .dialog-close { border: 2px solid var(--ink); border-radius: 999px; color: var(--ink); }
+.pose-menu-panel { border: 0; border-radius: 0; }
+.pose-menu-item:hover { border-radius: 0; background: var(--yellow); }
+.listing-editor, .danger-zone { border-top: 0; }
+.danger-zone { color: var(--ink); }
+
+.field input, .field select, .field textarea, .select, select, .copy-fallback { border: 2px solid var(--ink); border-radius: 0; background: var(--paper); }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--ink); outline: 3px solid var(--yellow); }
+.toggle-control, .active-toggle input { accent-color: var(--ink); }
+.form-error { border: 0; border-radius: 0; color: var(--paper); background: var(--danger); }
+.status-message { border: 0; border-radius: 0; color: var(--ink); background: var(--yellow); }
+.prototype-note { border-radius: 0; color: var(--ink); background: var(--paper); }
+
+.studio-stage { background: var(--pink); }
+.upload-panel { border: 0; border-radius: 0; background: var(--paper); transition: background-color 120ms ease; }
+.upload-panel.is-dragging { background: var(--yellow); }
+.upload-panel.is-dragging .upload-placeholder { background: var(--paper); }
+.upload-placeholder p { margin: 0; font-family: var(--font-display); font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.6rem); color: var(--ink); }
+.studio-step-indicator { color: var(--ink); font-weight: 700; }
+.studio-step-indicator li > span:first-child { border: 0; color: var(--ink); background: var(--paper); }
+.studio-step-indicator li.is-current > span:first-child { color: var(--yellow); background: var(--ink); }
+.studio-step-indicator li:not(:last-child)::after { background: var(--ink); }
+.processing-indicator { border-radius: 999px; background: var(--ink); }
+.processing-indicator span { background: var(--yellow); }
+
+.action-bar { border-top: 0; background: var(--ink); }
+
+.app-footer { margin-top: 0; border-top: 0; color: var(--ink); background: var(--yellow); }
+.app-footer-nav { font-size: 1rem; font-weight: 800; letter-spacing: 0; text-transform: none; }
+.app-footer-nav a { color: var(--ink); }
+.app-footer-nav a:hover, .app-footer-nav a:focus-visible { color: var(--ink); background: var(--pink); }
+.app-footer-wordmark { font-family: var(--font-display); font-weight: 400; font-size: 24vw; line-height: .85; color: var(--ink); -webkit-text-stroke: 0; }
+.app-footer-legal { font-size: .85rem; letter-spacing: 0; text-transform: none; color: var(--ink); }

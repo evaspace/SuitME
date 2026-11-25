@@ -16,7 +16,7 @@ export function Footer() {
       </nav>
       <div className="pierref-review-widget app-footer-review" data-site="suitme" />
       <Script src="https://pierref.eu/static/js/pierref-review.js" data-site="suitme" strategy="lazyOnload" />
-      <div className="app-footer-wordmark" aria-hidden="true">SUITME</div>
+      <div className="app-footer-wordmark" aria-hidden="true">SuitMe</div>
       <p className="app-footer-legal">&copy; 2026 Morgan Pierrefeu &mdash; SuitMe, a personal try-on studio</p>
     </footer>
   );
