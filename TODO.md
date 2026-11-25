@@ -18,9 +18,9 @@ This checklist records implemented front-end decisions and the remaining work ne
 ## Design direction - complete
 
 - [x] Use the uploaded SuitMe logo.
-- [x] Use a warm second-hand-fashion palette: forest green `#315D46`, soft pink `#D98699`, cream `#F5F0E7`, paper `#FFFDF8`, and warm ink `#2F3029`.
-- [x] Use Fraunces editorial headings with Plus Jakarta Sans interface typography.
-- [x] Use soft paper surfaces, warm borders, subtle shadows, and restrained pink details; keep green for primary actions and selected states.
+- [x] Use a loud two-colour palette after holy.com: hot pink `#FF4FA0` page ground, yellow `#FFE500` for the header, footer and main actions, black `#111111` ink, white panels.
+- [x] Use Anton for headings and Plus Jakarta Sans for the interface. Flat fields only: no gradients, resting shadows, blur or eyebrow labels; pill buttons, square panels.
+- [x] Studio accepts a garment photo by camera, gallery or drag-and-drop anywhere on the studio page.
 - [x] Use large labeled controls, visible selection states, plain English, and a single dominant action at each workflow step.
 - [x] Design mobile first and use wider screens for image grids and a two-column result review.
 
