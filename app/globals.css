@@ -570,7 +570,18 @@ select {
 
 /* Holy-inspired theme: flat pink ground, yellow actions, black ink, heavy condensed headings.
    Layout and button positions above are unchanged; this block only restyles. */
-body { color: var(--ink); background: var(--pink); }
+/* Neo-brutalist sticker layers (tools/gen_backdrop.py): a band at the bottom of the viewport, side strips in the gutters on wide screens. */
+body { color: var(--ink); background: url('/backdrop/band.svg') center bottom / min(100vw, 1800px) auto no-repeat fixed, var(--pink); }
+@media (max-width: 700px) { body { background: url('/backdrop/band-mobile.svg') center bottom / 100vw auto no-repeat fixed, var(--pink); } }
+@media (min-width: 1500px) {
+  body {
+    background:
+      url('/backdrop/side-left.svg') left 0 top 7.5rem / calc((100vw - 72rem) / 2 - 1rem) auto no-repeat fixed,
+      url('/backdrop/side-right.svg') right 0 top 7.5rem / calc((100vw - 72rem) / 2 - 1rem) auto no-repeat fixed,
+      url('/backdrop/band.svg') center bottom / min(100vw, 1800px) auto no-repeat fixed,
+      var(--pink);
+  }
+}
 .app-header { border-bottom: 0; background: var(--yellow); }
 .app-nav a { color: var(--ink); font-weight: 800; }
 .app-nav a:hover { color: var(--ink); background: var(--paper); }
@@ -611,7 +622,7 @@ body { color: var(--ink); background: var(--pink); }
 .status-message { border: 0; border-radius: 0; color: var(--ink); background: var(--yellow); }
 .prototype-note { border-radius: 0; color: var(--ink); background: var(--paper); }
 
-.studio-stage { background: var(--pink); }
+.studio-stage { background: transparent; }
 .upload-panel { border: 0; border-radius: 0; background: var(--paper); transition: background-color 120ms ease; }
 .upload-panel.is-dragging { background: var(--yellow); }
 .upload-panel.is-dragging .upload-placeholder { background: var(--paper); }

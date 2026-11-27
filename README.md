@@ -107,6 +107,10 @@ Generating spends the owner's Gemini quota, so `/api/generate` needs an account 
 - Limits (in memory): 10 sign-ups per IP per hour, 10 failed logins per username and 50 per IP per 15 min, 10 reset mails per IP per hour, `GENERATE_RATE_LIMIT_PER_HOUR` generations per account (default 15).
 - Storage: SQLite (`node:sqlite`) at `SUITME_DB` (`/data/suitme.db`, host folder `./data`, git-ignored). Back up `./data`. Models and results still live in each browser.
 
+## Sticker background
+
+The pink ground carries neo-brutalist stickers drawn in code by `tools/gen_backdrop.py` (run `python3 tools/gen_backdrop.py`, output in `public/backdrop/`): `band.svg` at the bottom of the viewport on desktop, `band-mobile.svg` on phones (max 700px), and `side-left.svg` / `side-right.svg` in the gutters beside the 72rem content column from 1500px wide. Layers are set on `body` at the end of `app/globals.css`. Text inside the SVGs falls back to Impact/Arial Black because web fonts do not load inside background images: keep labels short.
+
 ## Listing text
 
 The image model often returns no text part, so the Vinted listing (French) comes from a separate JSON-schema call to `GEMINI_TEXT_MODEL` (default `gemini-2.5-flash`), run in parallel with the image.
