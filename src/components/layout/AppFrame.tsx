@@ -1,8 +1,8 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import type { ReactNode } from 'react';
 import { AppNavigation } from './AppNavigation';
+import { destinations } from './destinations';
 import { SwipeNavigation } from './SwipeNavigation';
 import { Footer } from './Footer';
 
@@ -12,9 +12,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
       <a className="skip-link" href="#main-content">Skip to content</a>
       <header className="app-header">
         <div className="app-header-inner">
-          <Link className="app-brand" href="/studio" aria-label="SuitMe home">
-            <Image className="app-brand-logo" src="/suitme_logo.svg" alt="SuitMe" width={160} height={142} priority unoptimized />
-          </Link>
+          <Link className="app-brand" href="/studio">SuitMe</Link>
           <Suspense fallback={<AppNavigationFallback />}>
             <AppNavigation />
           </Suspense>
@@ -31,9 +29,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
 function AppNavigationFallback() {
   return (
     <nav className="app-nav" aria-label="Main navigation">
-      <Link href="/studio">Studio</Link>
-      <Link href="/models">Models</Link>
-      <Link href="/results">Results</Link>
+      {destinations.map((d) => <Link key={d.href} href={d.href}>{d.label}</Link>)}
       <a href="/blog/">Blog</a>
     </nav>
   );

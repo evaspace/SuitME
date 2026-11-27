@@ -145,7 +145,6 @@ a {
   .app-header-inner { gap: .35rem; }
   .app-nav { gap: 0; }
   .app-nav a { padding-inline: .2rem; font-size: .76rem; }
-  .app-brand-logo { width: 80px; }
 }
 
 .app-nav {
@@ -378,7 +377,6 @@ select {
 
 /* Warm vintage palette and responsive, editable workspace components. */
 .app-header { background: rgb(255 253 248 / 96%); }
-.app-brand-logo { display: block; width: clamp(92px, 13vw, 126px); height: auto; flex: 0 0 auto; object-fit: contain; }
 .app-brand-mark { display: none; }
 .app-nav a[aria-current="page"] { background: var(--brand); box-shadow: inset 0 -3px 0 var(--pink); }
 .app-nav a:hover { background: var(--pink-pale); color: var(--brand-deep); }
@@ -488,7 +486,6 @@ select {
   .pose-add-form { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 620px) {
-  .app-brand-logo { width: 88px; height: auto; }
   .app-brand-copy span { display: none; }
   .page-title-row, .detail-heading, .section-title-row { align-items: stretch; flex-direction: column; }
   .page-title-row .btn, .section-title-row .btn, .detail-actions .btn { width: 100%; }
@@ -680,3 +677,23 @@ body { color: var(--ink); background: var(--pink) url('/backdrop/fond.svg') cent
 .photo-source-actions > .stk-host > .upload-button { flex: 1; min-width: 0; }
 .photo-input:focus-visible + .stk-host .upload-button { outline: 3px solid var(--focus); outline-offset: 5px; }
 @media (max-width: 620px) { .photo-source-actions > .stk-host { min-width: 0; } }
+
+/* Wordmark instead of the logo image. */
+.app-brand { font-family: var(--font-display); font-size: clamp(2rem, 1.6rem + 1.4vw, 2.6rem); line-height: 1; color: var(--ink); text-decoration: none; }
+
+/* Phone: header keeps only the wordmark; navigation becomes a bottom tab bar in thumb reach. */
+@media (max-width: 620px) {
+  .app-header-inner { flex-wrap: nowrap; min-height: 60px; padding-block: 0; }
+  .app-nav {
+    position: fixed; z-index: 40; right: 0; bottom: 0; left: 0;
+    width: auto; gap: 0; padding: 0 0 env(safe-area-inset-bottom);
+    background: var(--ink);
+  }
+  .app-nav a {
+    min-height: 60px; flex: 1 1 0; padding-inline: 0; border-radius: 0;
+    color: var(--paper); font-size: .82rem; font-weight: 800;
+  }
+  .app-nav a:hover { color: var(--paper); background: transparent; }
+  .app-nav a[aria-current="page"] { color: var(--ink); background: var(--yellow); }
+  body { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+}

@@ -2,13 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const destinations = [
-  { href: '/studio', label: 'Studio' },
-  { href: '/models', label: 'Models' },
-  { href: '/results', label: 'Results' },
-  { href: '/account', label: 'Account' },
-];
+import { destinations } from './destinations';
 
 export function AppNavigation() {
   const pathname = usePathname();

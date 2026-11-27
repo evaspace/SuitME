@@ -4,6 +4,8 @@ SuitMe is a personal, mobile-first web workspace for preparing virtual try-on im
 
 ![SuitMe Studio, step 1: a pink page with a yellow header, the heading "Start with one clothing photo", a white drop zone and the "Take a photo" and "Choose from gallery" buttons](docs/studio.png)
 
+![SuitMe on a phone: the "SuitMe" wordmark in the yellow header and a black bottom tab bar with Studio, Models, Results, Account and Blog, Studio highlighted in yellow](docs/studio-phone.png)
+
 The repository contains an interactive personal-use web app. Model profiles, reference photos, results, and edited listing fields are saved in this browser. Garment uploads remain temporary in memory. Try-on generation uses Google Gemini image generation through a server-side route.
 
 ## Product direction
