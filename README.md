@@ -92,11 +92,11 @@ The production Compose file builds a minimal standalone Next.js image and publis
 docker compose -f compose.production.yaml up -d --build
 ```
 
-The ignored `.env.local` file is supplied to the running container for `GEMINI_API_KEY` and is excluded from the image build. This is still a personal-use app without authentication; keep it on the private LAN until an access-control layer is added before public exposure.
+The ignored `.env.local` file is supplied to the running container for `GEMINI_API_KEY` and is excluded from the image build. There are no accounts: every visitor's models and results stay in their own browser, and the per-IP rate limit protects the Gemini key.
 
 ## Public release status
 
-SuitMe will go public at `https://suitme.pierref.eu` (currently behind HTTP 401). The last blocker is adding a garment file in Studio: once the upload works end to end, remove the 401, then add a `sitemap.xml`, add the host to `/opt/pierref/tools/geo/sites.py` (IndexNow) and submit the sitemap in Google Search Console.
+SuitMe is public at `https://suitme.pierref.eu` (no HTTP auth since 2026-11-27). `/api/generate` is limited to `GENERATE_RATE_LIMIT_PER_HOUR` generations per IP per hour (default 15, in memory) so visitors cannot drain the Gemini quota. `app/sitemap.ts` serves `/sitemap.xml`; the host is listed in `/opt/pierref/tools/geo/sites.py` (llms.txt, IndexNow). Still to do by hand: submit the sitemap in Google Search Console.
 
 ## Planning files
 

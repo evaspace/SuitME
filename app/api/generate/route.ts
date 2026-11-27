@@ -11,6 +11,17 @@ const ENHANCE_STYLES: Record<string, string> = {
   natural: 'natural lifestyle photo, golden-hour daylight, softly blurred outdoor background',
 };
 
+// shortcut: per-process memory, resets on restart and is not shared across instances; move to Redis if scaled out.
+const RATE_LIMIT = Number(process.env.GENERATE_RATE_LIMIT_PER_HOUR || 15);
+const hits = new Map<string, number[]>();
+
+function rateLimited(ip: string, now = Date.now()) {
+  const recent = (hits.get(ip) ?? []).filter((time) => now - time < 3_600_000);
+  if (recent.length >= RATE_LIMIT) { hits.set(ip, recent); return true; }
+  recent.push(now); hits.set(ip, recent);
+  return false;
+}
+
 interface ImageInput {
   dataUrl?: unknown;
   label: string;
@@ -48,6 +59,13 @@ export async function POST(request: Request) {
   if (!apiKey) {
     console.error('[SuitMe Gemini] API key is not configured', { requestId });
     return NextResponse.json({ error: 'Gemini is not configured on this server. Add GEMINI_API_KEY to .env.local and restart the app.' }, { status: 503 });
+  }
+
+  // Caddy sets X-Forwarded-For; the app port is only reachable from the LAN.
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'local';
+  if (rateLimited(ip)) {
+    console.warn('[SuitMe Gemini] rate limited', { requestId });
+    return NextResponse.json({ error: `Limit reached: ${RATE_LIMIT} generations per hour. Try again later.`, requestId }, { status: 429 });
   }
 
   try {
