@@ -40,3 +40,7 @@ export const useGenerationStore = create<GenerationStore>()(persist((set) => ({
   addResults: (results) => set((state) => ({ results: [...state.results, ...results] })),
   clearResults: () => set({ results: [], progress: 0, isGenerating: false }),
 }), { name: 'suitme-results-v1', storage: createJSONStorage(() => localStorage), skipHydration: true }));
+
+export function listingText(result: Pick<GenerationResult, 'listingTitle' | 'listingDescription' | 'listingTags'>) {
+  return [result.listingTitle, result.listingDescription, result.listingTags].filter(Boolean).join('\n\n');
+}

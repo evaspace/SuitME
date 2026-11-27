@@ -3,14 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { useGenerationStore } from '@/store/useGenerationStore';
+import { listingText, useGenerationStore } from '@/store/useGenerationStore';
 import { useLocalDataReady } from '@/hooks/useLocalDataReady';
 
 type SortMode = 'newest' | 'oldest' | 'model' | 'style';
-
-function listingText(result: { listingTitle: string; listingDescription: string; listingTags: string }) {
-  return [result.listingTitle, result.listingDescription, result.listingTags].filter(Boolean).join('\n\n');
-}
 
 export default function ResultsPage() {
   const { results, updateResult } = useGenerationStore();
