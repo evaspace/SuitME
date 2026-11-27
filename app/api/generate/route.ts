@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { currentAccount } from '@/lib/auth';
+import { tooMany } from '@/lib/rateLimit';
 
 const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image';
 const MAX_IMAGE_BASE64_LENGTH = 8 * 1024 * 1024;
@@ -11,16 +13,7 @@ const ENHANCE_STYLES: Record<string, string> = {
   natural: 'natural lifestyle photo, golden-hour daylight, softly blurred outdoor background',
 };
 
-// shortcut: per-process memory, resets on restart and is not shared across instances; move to Redis if scaled out.
 const RATE_LIMIT = Number(process.env.GENERATE_RATE_LIMIT_PER_HOUR || 15);
-const hits = new Map<string, number[]>();
-
-function rateLimited(ip: string, now = Date.now()) {
-  const recent = (hits.get(ip) ?? []).filter((time) => now - time < 3_600_000);
-  if (recent.length >= RATE_LIMIT) { hits.set(ip, recent); return true; }
-  recent.push(now); hits.set(ip, recent);
-  return false;
-}
 
 interface ImageInput {
   dataUrl?: unknown;
@@ -45,6 +38,37 @@ function parseListingDraft(textParts: string[]) {
   return { listingTitle: '', listingDescription: '', listingTags: '' };
 }
 
+const TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
+const EMPTY_LISTING = { listingTitle: '', listingDescription: '', listingTags: '' };
+
+// The image model often drops its text part, so the listing comes from a separate JSON-only call run in parallel.
+async function draftListing(apiKey: string, garment: { mimeType: string; data: string }, requestId: string) {
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [
+          { inlineData: garment },
+          { text: 'Write a Vinted France listing for this second-hand garment, in French. Use only details clearly visible in the photo. Never invent a brand, material, size or condition. Title concise, description brief (2-3 sentences), tags comma-separated.' },
+        ] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: { type: 'OBJECT', properties: { listingTitle: { type: 'STRING' }, listingDescription: { type: 'STRING' }, listingTags: { type: 'STRING' } }, required: ['listingTitle', 'listingDescription', 'listingTags'] },
+        },
+      }),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (!response.ok) { console.warn('[SuitMe Gemini] listing request failed', { requestId, httpStatus: response.status }); return EMPTY_LISTING; }
+    const result = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+    return parseListingDraft((result.candidates?.[0]?.content?.parts ?? []).map((part) => part.text ?? '').filter(Boolean));
+  } catch (cause) {
+    console.warn('[SuitMe Gemini] listing request crashed', { requestId, error: cause instanceof Error ? cause.message : cause });
+    return EMPTY_LISTING;
+  }
+}
+
 function parseImage(input: ImageInput) {
   if (typeof input.dataUrl !== 'string') throw new Error(`${input.label} photo is missing.`);
   if (input.dataUrl.length > MAX_IMAGE_BASE64_LENGTH) throw new Error(`${input.label} photo is too large after processing. Choose a smaller image.`);
@@ -61,10 +85,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Gemini is not configured on this server. Add GEMINI_API_KEY to .env.local and restart the app.' }, { status: 503 });
   }
 
-  // Caddy sets X-Forwarded-For; the app port is only reachable from the LAN.
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'local';
-  if (rateLimited(ip)) {
-    console.warn('[SuitMe Gemini] rate limited', { requestId });
+  // Generation spends the owner's Gemini quota: accounts only, limited per account.
+  const account = currentAccount(request);
+  if (!account) return NextResponse.json({ error: 'Log in to generate try-ons.', requestId }, { status: 401 });
+  if (tooMany(`generate:${account.id}`, RATE_LIMIT, 3_600_000)) {
+    console.warn('[SuitMe Gemini] rate limited', { requestId, account: account.id });
     return NextResponse.json({ error: `Limit reached: ${RATE_LIMIT} generations per hour. Try again later.`, requestId }, { status: 429 });
   }
 
@@ -92,10 +117,11 @@ export async function POST(request: Request) {
       parts = [
         { inlineData: modelReference },
         { inlineData: garment },
-        { text: `Edit the first image (the model photo). Replace only the clothing the person wears with the garment shown in the second image. Everything else must stay pixel-identical to the first image: same person, face, body, exact pose, arm and leg positions, hands, head angle, camera angle, framing, crop, background and lighting. Do not re-pose, re-frame, zoom or regenerate the person. Preserve the garment's cut, color, fabric, pattern and visible details, and wear it in a ${style} way. Do not add text, labels, accessories or extra people. Return the edited image. Also return a short listing draft in a separate text part as exactly one JSON object with string fields listingTitle, listingDescription, and listingTags. Use only details clearly visible in the garment photo. Never invent a brand, material, size, or condition. Keep title concise, description brief, and tags comma-separated. Do not place listing text in the image.` },
+        { text: `Edit the first image (the model photo). Replace only the matching piece of clothing (a top replaces the top, trousers replace the trousers, a dress replaces top and bottom) with the garment shown in the second image. Every other piece of clothing, shoes and accessories keep their exact color and look. Everything else must stay pixel-identical to the first image: same person, face, body, exact pose, arm and leg positions, hands, head angle, camera angle, framing, crop, background and lighting. Do not re-pose, re-frame, zoom or regenerate the person. Preserve the garment's cut, color, fabric, pattern and visible details, and wear it in a ${style} way. Do not add text, labels, accessories or extra people. Return the edited image. Do not place listing text in the image.` },
       ];
     }
 
+    const listingPromise = enhance ? Promise.resolve(EMPTY_LISTING) : draftListing(apiKey, parseImage({ dataUrl: body.garment?.dataUrl, label: 'Garment' }), requestId);
     console.info('[SuitMe Gemini] generation started', { requestId, model: MODEL, mode: enhance ? 'enhance' : 'tryon', style });
     const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
       method: 'POST',
@@ -133,10 +159,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Gemini did not return an image for this request. Try different photos or adjust the model reference.' , requestId }, { status: 502 });
     }
 
+    const listing = await listingPromise;
     console.info('[SuitMe Gemini] generation completed', { requestId, mimeType: image.mimeType, outputLength: image.data.length });
     return NextResponse.json({
       imageDataUrl: `data:${image.mimeType};base64,${image.data}`,
-      listing: parseListingDraft(outParts.map((part) => part.text ?? '').filter(Boolean)),
+      listing,
       requestId,
     });
   } catch (cause) {

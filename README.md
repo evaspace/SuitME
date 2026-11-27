@@ -96,7 +96,20 @@ The ignored `.env.local` file is supplied to the running container for `GEMINI_A
 
 ## Public release status
 
-SuitMe is public at `https://suitme.pierref.eu` (no HTTP auth since 2026-11-27). `/api/generate` is limited to `GENERATE_RATE_LIMIT_PER_HOUR` generations per IP per hour (default 15, in memory) so visitors cannot drain the Gemini quota. `app/sitemap.ts` serves `/sitemap.xml`; the host is listed in `/opt/pierref/tools/geo/sites.py` (llms.txt, IndexNow). Still to do by hand: submit the sitemap in Google Search Console.
+SuitMe is public at `https://suitme.pierref.eu` (no HTTP auth since 2026-11-27). `app/sitemap.ts` serves `/sitemap.xml`; the host is listed in `/opt/pierref/tools/geo/sites.py` (llms.txt, IndexNow). Still to do by hand: submit the sitemap in Google Search Console.
+
+## Accounts
+
+Generating spends the owner's Gemini quota, so `/api/generate` needs an account (same model as epitadoomscrolling):
+
+- `/account`: username + password (scrypt hash), optional e-mail used only for password reset. Session = random token in an HttpOnly cookie `suitme_session` (30 days), stored hashed.
+- Forgotten password: `/api/auth/reset-request` mails a one-time link `/account?reset=<token>` valid 1 hour (same answer whether the account exists or not). Mail goes through the OVH SMTP of morgan@pierref.eu (`MAIL_SERVER`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` in `.env.local`, copied from epitadoomscrolling).
+- Limits (in memory): 10 sign-ups per IP per hour, 10 failed logins per username and 50 per IP per 15 min, 10 reset mails per IP per hour, `GENERATE_RATE_LIMIT_PER_HOUR` generations per account (default 15).
+- Storage: SQLite (`node:sqlite`) at `SUITME_DB` (`/data/suitme.db`, host folder `./data`, git-ignored). Back up `./data`. Models and results still live in each browser.
+
+## Listing text
+
+The image model often returns no text part, so the Vinted listing (French) comes from a separate JSON-schema call to `GEMINI_TEXT_MODEL` (default `gemini-2.5-flash`), run in parallel with the image.
 
 ## Planning files
 

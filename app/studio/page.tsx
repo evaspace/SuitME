@@ -8,6 +8,8 @@ import { useLocalDataReady } from '@/hooks/useLocalDataReady';
 import { readImageForLocalUse } from '@/lib/images';
 import { useGenerationStore } from '@/store/useGenerationStore';
 import { createId, useModelStore } from '@/store/useModelStore';
+import { useAccount } from '@/hooks/useAccount';
+import Link from 'next/link';
 
 // One tap flow: a garment photo starts the try-on at once with the remembered model and style.
 export default function Studio() {
@@ -18,6 +20,7 @@ export default function Studio() {
   const [resultId, setResultId] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState('');
   useLocalDataReady();
+  const account = useAccount();
 
   const readyModels = models.filter((model) => model.active && model.poses.some((pose) => pose.isDefault));
   const model = readyModels.find((entry) => entry.id === selectedModelId) ?? readyModels[0];
@@ -77,6 +80,13 @@ export default function Studio() {
     garmentStore.setGarmentFile(file);
     void generate(file);
   }
+
+  if (account === null) return (
+    <section className="page-shell studio-page">
+      <h1 className="page-heading">Snap a garment</h1>
+      <div className="empty-card compact"><h2>Log in to start</h2><p>Try-ons need a free account.</p><Link className="btn btn-primary" href="/account?next=/studio">Log in or create an account</Link></div>
+    </section>
+  );
 
   return (
     <div className="studio-stage">

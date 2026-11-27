@@ -12,6 +12,10 @@ services:
       NODE_ENV: production
       HOSTNAME: 0.0.0.0
       PORT: "3000"
+      SUITME_DB: /data/suitme.db
+    volumes:
+      # accounts and sessions (SQLite); back this folder up
+      - ./data:/data
     ports:
       - "192.168.1.64:3000:3000"
     mem_limit: 1g

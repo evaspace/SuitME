@@ -639,3 +639,5 @@ body { color: var(--ink); background: var(--pink); }
 .result-preview-tall { aspect-ratio: 3 / 4; max-height: 75vh; }
 .studio-finish .section-heading { margin: 1.5rem 0 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(1.5rem, 1.2rem + 1vw, 1.9rem); }
 .upload-button[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.account-form { max-width: 34rem; margin-top: 1.5rem; padding: clamp(1.25rem, 4vw, 2rem); }
+.account-tabs { display: flex; gap: .75rem; flex-wrap: wrap; }
