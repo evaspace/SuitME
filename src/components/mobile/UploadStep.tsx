@@ -6,6 +6,7 @@ import { validateImageFile } from '@/lib/images';
 import { useGarmentStore } from '@/store/useGarmentStore';
 import { useModelStore, type Model } from '@/store/useModelStore';
 import { PhotoButtons } from './PhotoButtons';
+import { WithSticker } from '@/components/Sticker';
 
 interface UploadStepProps { readyModels: Model[]; model?: Model; error: string; onPhoto: (file: File) => void; }
 
@@ -31,7 +32,7 @@ export const UploadStep = ({ readyModels, model, error, onPhoto }: UploadStepPro
   return (
     <div className="studio-stage" {...dropProps}>
       <section className="page-shell studio-page">
-        <h1 className="page-heading">Snap a garment</h1>
+        <h1 className="page-heading"><WithSticker name="hanger">Snap a garment</WithSticker></h1>
         <p className="page-intro">The try-on and the listing text start as soon as the photo is taken.</p>
         {model ? <div className={isDragging ? 'upload-panel is-dragging' : 'upload-panel'}>
           <PhotoButtons onPhoto={onPhoto} />

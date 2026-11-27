@@ -1,7 +1,8 @@
-"""Draw the neo-brutalist pink page background with its stickers as SVG into public/backdrop/.
+"""Draw the soft pink page background (public/backdrop/) and the neo-brutalist stickers (public/stickers/) as SVG.
 
-side-left/side-right.svg fill the gutters beside the content on wide screens; band.svg (desktop) and
-band-mobile.svg (phone) sit at the bottom of the viewport, so headings at the top stay readable. Same approach as epitadoomscrolling tools/gen_neo_stickers.py.
+fond.svg (landscape) and fond-mobile.svg (portrait) only carry faint tone-step motifs; the stickers are
+separate files placed on buttons and headings.
+Same approach as epitadoomscrolling tools/gen_neo_stickers.py.
 
 Run: python3 tools/gen_backdrop.py
 """
@@ -110,37 +111,53 @@ def canvas(w, h, parts):
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">{"".join(parts)}</svg>\n'
 
 
-# Transparent layers over the flat pink body: side strips live in the gutters beside the 72rem content column
-# (wide screens only), the bands sit at the bottom of the viewport. See the body rule in app/globals.css.
-def side_left():
-    return canvas(260, 1080, [place(hanger_sweater, 10, 120, 0.95, -8), place(lightning, 40, 470, 0.9, -12),
-                              sparkles((200, 60, 24), (210, 420, 18), (60, 760, 20))])
+# Stickers: one file each, hung on buttons and headings by src/components/Sticker.tsx (animations in globals.css).
+# (draw, width, height, offset) so the hard shadow and strokes stay inside the viewBox.
+STICKERS = {
+    'snap-it': (snap_it, 240, 240, (8, 8)), 'ready-to-post': (ready_badge, 232, 232, (8, 8)),
+    'price-tag': (price_tag, 290, 175, (44, 10)), 'hanger-sweater': (hanger_sweater, 250, 300, (6, 6)),
+    'yellow-sweater': (yellow_sweater, 250, 260, (6, 8)), 'thrift-find': (thrift_find, 360, 130, (6, 8)),
+    'lightning': (lightning, 210, 250, (6, 6)), 'phone-flash': (phone_flash, 240, 290, (6, 14)),
+    'worn-in-10-sec': (worn_10, 410, 130, (8, 8)),
+}
 
 
-def side_right():
-    return canvas(260, 1080, [place(snap_it, 20, 90, 1.0, 10), place(price_tag, 40, 430, 0.85, 12),
-                              sparkles((40, 60, 18), (220, 380, 22), (200, 720, 20))])
+def sticker(name):
+    draw, w, h, (dx, dy) = STICKERS[name]
+    return canvas(w, h, [f'<g transform="translate({dx} {dy})">{draw()}</g>'])
 
 
-def band():
-    return canvas(1800, 360, [place(yellow_sweater, 40, 70, 0.95, 12), place(thrift_find, 360, 200, 0.95, -6),
-                              place(ready_badge, 820, 110, 1.0, -10), place(phone_flash, 1150, 60, 0.95, 8),
-                              place(worn_10, 1380, 210, 1.0, -4),
-                              sparkles((330, 90, 26), (760, 60, 20), (1080, 300, 22), (1460, 110, 26), (1760, 60, 18))])
+# Soft ground: flat pink with low-contrast tone-step motifs (no ink, no stickers) so the page stays calm.
+LIGHT, DARK = '#ff62ab', '#f5449a'
 
 
-def band_mobile():
-    return canvas(1080, 560, [place(yellow_sweater, 10, 220, 1.0, -10), place(ready_badge, 380, 290, 1.05, 8),
-                              place(price_tag, 700, 120, 1.05, -12), place(snap_it, 820, 330, 0.95, 12),
-                              sparkles((300, 200, 30), (650, 80, 24), (720, 500, 22))])
+def soft_motifs(w, h, seed):
+    import random
+    rnd = random.Random(seed)
+    parts = [f'<rect width="{w}" height="{h}" fill="{PINK}"/>']
+    for _ in range(w * h // 52000):
+        x, y, kind = rnd.uniform(0, w), rnd.uniform(0, h), rnd.random()
+        colour = LIGHT if rnd.random() < .6 else DARK
+        if kind < .45:
+            parts.append(f'<g fill="{colour}">{star4(round(x), round(y), rnd.randint(10, 22))}</g>')
+        elif kind < .75:
+            dots = ''.join(f'<circle cx="{x + i * 18:.0f}" cy="{y + j * 18:.0f}" r="3.5"/>' for i in range(4) for j in range(3))
+            parts.append(f'<g fill="{colour}">{dots}</g>')
+        else:
+            zig = ' '.join(f'{x + i * 16:.0f},{y + (0 if i % 2 else 12):.0f}' for i in range(9))
+            parts.append(f'<polyline points="{zig}" fill="none" stroke="{colour}" stroke-width="5" stroke-linejoin="round"/>')
+    return canvas(w, h, parts)
 
 
 if __name__ == '__main__':
-    OUT.mkdir(parents=True, exist_ok=True)
-    for name in OUT.glob('*.svg'):
-        name.unlink()  # drop layers that no longer exist
-    for name, draw in (('side-left.svg', side_left), ('side-right.svg', side_right), ('band.svg', band), ('band-mobile.svg', band_mobile)):
-        data = draw()
+    STICKER_OUT = OUT.parent / 'stickers'
+    for folder in (OUT, STICKER_OUT):
+        folder.mkdir(parents=True, exist_ok=True)
+        for old in folder.glob('*.svg'):
+            old.unlink()  # drop files that no longer exist
+    files = {OUT / 'fond.svg': soft_motifs(1920, 1080, 7), OUT / 'fond-mobile.svg': soft_motifs(1080, 1920, 11)}
+    files.update({STICKER_OUT / f'{name}.svg': sticker(name) for name in STICKERS})
+    for path, data in files.items():
         xml.dom.minidom.parseString(data)  # self-check: every file is well-formed XML
-        (OUT / name).write_text(data)
-        print(name, len(data))
+        path.write_text(data)
+        print(path.relative_to(OUT.parent.parent), len(data))

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { createId, useModelStore } from '@/store/useModelStore';
 import { isSupportedImage, readImageForLocalUse } from '@/lib/images';
 import { useLocalDataReady } from '@/hooks/useLocalDataReady';
+import { WithSticker } from '@/components/Sticker';
 
 export default function ModelsPage() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function ModelsPage() {
           
           <h1 className="page-heading">Models</h1>
         </div>
-        {models.length > 0 && <button className="btn btn-primary" type="button" onClick={() => setIsAdding(true)}>Add a model</button>}
+        {models.length > 0 && <WithSticker name="phone"><button className="btn btn-primary" type="button" onClick={() => setIsAdding(true)}>Add a model</button></WithSticker>}
       </header>
 
       {models.length === 0 ? (
@@ -62,7 +63,7 @@ export default function ModelsPage() {
           <div className="empty-illustration" aria-hidden="true">＋</div>
           <h2>Your model library is empty</h2>
           <p>Add a profile and reference photos to start using your own models in the Studio.</p>
-          <button className="btn btn-primary" type="button" onClick={() => setIsAdding(true)}>Add your first model</button>
+          <WithSticker name="phone"><button className="btn btn-primary" type="button" onClick={() => setIsAdding(true)}>Add your first model</button></WithSticker>
         </div>
       ) : (
         <div className="model-grid">

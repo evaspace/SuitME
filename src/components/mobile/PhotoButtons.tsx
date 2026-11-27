@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react';
 import { validateImageFile } from '@/lib/images';
+import { WithSticker } from '@/components/Sticker';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif';
 
@@ -25,7 +26,7 @@ export function PhotoButtons({ onPhoto, disabled, cameraLabel = 'Take a photo' }
   return <>
     <div className="photo-source-actions">
       <input type="file" accept={ACCEPT} capture="environment" className="photo-input" id={`${id}-camera`} disabled={disabled} onChange={accept} />
-      <label htmlFor={`${id}-camera`} className="btn btn-primary upload-button" aria-disabled={disabled}>{cameraLabel}</label>
+      <WithSticker name="snap"><label htmlFor={`${id}-camera`} className="btn btn-primary upload-button" aria-disabled={disabled}>{cameraLabel}</label></WithSticker>
       <input type="file" accept={ACCEPT} className="photo-input" id={`${id}-gallery`} disabled={disabled} onChange={accept} />
       <label htmlFor={`${id}-gallery`} className="btn btn-outline upload-button" aria-disabled={disabled}>From gallery</label>
     </div>

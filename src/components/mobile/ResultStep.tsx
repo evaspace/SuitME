@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { listingText, useGenerationStore, type GenerationResult } from '@/store/useGenerationStore';
 import { PhotoButtons } from './PhotoButtons';
+import { WithSticker } from '@/components/Sticker';
 
 interface ResultStepProps {
   isGenerating: boolean;
@@ -52,7 +53,7 @@ export const ResultStep = ({ isGenerating, error, garmentUrl, result, onRetry, o
 
   if (isGenerating || (!result && !error)) return (
     <section className="page-shell studio-finish" aria-live="polite">
-      <h1 className="page-heading">Dressing your model</h1>
+      <h1 className="page-heading"><WithSticker name="bolt">Dressing your model</WithSticker></h1>
       {garmentUrl && <div className="result-preview"><Image src={garmentUrl} alt="Garment being tried on" fill sizes="90vw" unoptimized /></div>}
       <div role="status"><div className="processing-indicator" aria-hidden="true"><span /></div><p className="field-help">Gemini usually needs 10 to 30 seconds.</p></div>
     </section>
@@ -68,10 +69,10 @@ export const ResultStep = ({ isGenerating, error, garmentUrl, result, onRetry, o
 
   return (
     <section className="page-shell studio-finish" aria-live="polite">
-      <h1 className="page-heading">Ready for Vinted</h1>
+      <h1 className="page-heading"><WithSticker name="tag">Ready for Vinted</WithSticker></h1>
       <div className="result-preview result-preview-tall"><Image src={result.imageUrl} alt={`${result.modelName} wearing the garment`} fill sizes="90vw" unoptimized /></div>
       <div className="finish-actions">
-        <button type="button" className="btn btn-primary" onClick={() => void share()}>Share to Vinted</button>
+        <WithSticker name="ready"><button type="button" className="btn btn-primary" onClick={() => void share()}>Share to Vinted</button></WithSticker>
         <button type="button" className="btn btn-outline" onClick={() => void copy()}>Copy text</button>
         <button type="button" className="btn btn-outline" onClick={() => save()}>Save image</button>
       </div>

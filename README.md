@@ -107,9 +107,14 @@ Generating spends the owner's Gemini quota, so `/api/generate` needs an account 
 - Limits (in memory): 10 sign-ups per IP per hour, 10 failed logins per username and 50 per IP per 15 min, 10 reset mails per IP per hour, `GENERATE_RATE_LIMIT_PER_HOUR` generations per account (default 15).
 - Storage: SQLite (`node:sqlite`) at `SUITME_DB` (`/data/suitme.db`, host folder `./data`, git-ignored). Back up `./data`. Models and results still live in each browser.
 
-## Sticker background
+## Background and stickers
 
-The pink ground carries neo-brutalist stickers drawn in code by `tools/gen_backdrop.py` (run `python3 tools/gen_backdrop.py`, output in `public/backdrop/`): `band.svg` at the bottom of the viewport on desktop, `band-mobile.svg` on phones (max 700px), and `side-left.svg` / `side-right.svg` in the gutters beside the 72rem content column from 1500px wide. Layers are set on `body` at the end of `app/globals.css`. Text inside the SVGs falls back to Impact/Arial Black because web fonts do not load inside background images: keep labels short.
+`tools/gen_backdrop.py` (run `python3 tools/gen_backdrop.py`) draws two kinds of SVG:
+
+- `public/backdrop/fond.svg` (landscape) and `fond-mobile.svg` (portrait): the soft ground, flat pink with faint tone-step stars, dots and knit zigzags. Set on `body` in `app/globals.css`.
+- `public/stickers/*.svg`: neo-brutalist stickers (black outline, hard offset shadow). `src/components/Sticker.tsx` hangs one on a button or heading with `<WithSticker name="snap">…</WithSticker>`; each `.stk-<name>` rule in `globals.css` sets its corner, its idle animation and its reaction to the host's hover/focus. Stickers never take clicks (`pointer-events: none`) and stop moving with `prefers-reduced-motion`.
+
+Placed on: Studio heading (hanger), camera button (SNAP IT), generating heading (lightning), result heading (price tag), Share to Vinted (READY TO POST), Account heading (THRIFT FIND), Add a model (phone), Results heading (WORN IN 10 SEC), log-in prompt (sweater). Text inside the SVGs falls back to Impact/Arial Black (web fonts do not load in images): keep labels short.
 
 ## Listing text
 

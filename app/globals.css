@@ -564,24 +564,15 @@ select {
 .app-footer-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem 1.6rem; margin-bottom: var(--space-3); font-size: var(--text-small); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .app-footer-nav a { color: var(--brand-deep); text-decoration: none; }
 .app-footer-nav a:hover, .app-footer-nav a:focus-visible { color: var(--pink); text-decoration: underline; }
-.app-footer-review { max-width: 520px; margin: 0 auto var(--space-3); }
-.app-footer-wordmark { font-family: var(--font-display); font-weight: 900; font-size: 15vw; line-height: .8; color: transparent; -webkit-text-stroke: 2px rgb(49 93 70 / 35%); user-select: none; }
+.app-footer-review { position: relative; z-index: 1; max-width: 520px; margin: 0 auto var(--space-3); }
+.app-footer-wordmark { pointer-events: none; font-family: var(--font-display); font-weight: 900; font-size: 15vw; line-height: .8; color: transparent; -webkit-text-stroke: 2px rgb(49 93 70 / 35%); user-select: none; }
 .app-footer-legal { margin: var(--space-2) 0 0; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: rgb(47 48 41 / 65%); }
 
 /* Holy-inspired theme: flat pink ground, yellow actions, black ink, heavy condensed headings.
    Layout and button positions above are unchanged; this block only restyles. */
-/* Neo-brutalist sticker layers (tools/gen_backdrop.py): a band at the bottom of the viewport, side strips in the gutters on wide screens. */
-body { color: var(--ink); background: url('/backdrop/band.svg') center bottom / min(100vw, 1800px) auto no-repeat fixed, var(--pink); }
-@media (max-width: 700px) { body { background: url('/backdrop/band-mobile.svg') center bottom / 100vw auto no-repeat fixed, var(--pink); } }
-@media (min-width: 1500px) {
-  body {
-    background:
-      url('/backdrop/side-left.svg') left 0 top 7.5rem / calc((100vw - 72rem) / 2 - 1rem) auto no-repeat fixed,
-      url('/backdrop/side-right.svg') right 0 top 7.5rem / calc((100vw - 72rem) / 2 - 1rem) auto no-repeat fixed,
-      url('/backdrop/band.svg') center bottom / min(100vw, 1800px) auto no-repeat fixed,
-      var(--pink);
-  }
-}
+/* Soft ground: flat pink with faint tone-step motifs (tools/gen_backdrop.py). Stickers live on buttons, not here. */
+body { color: var(--ink); background: var(--pink) url('/backdrop/fond.svg') center / cover fixed; }
+@media (orientation: portrait) { body { background-image: url('/backdrop/fond-mobile.svg'); } }
 .app-header { border-bottom: 0; background: var(--yellow); }
 .app-nav a { color: var(--ink); font-weight: 800; }
 .app-nav a:hover { color: var(--ink); background: var(--paper); }
@@ -652,3 +643,40 @@ body { color: var(--ink); background: url('/backdrop/band.svg') center bottom / 
 .upload-button[aria-disabled="true"] { opacity: .5; pointer-events: none; }
 .account-form { max-width: 34rem; margin-top: 1.5rem; padding: clamp(1.25rem, 4vw, 2rem); }
 .account-tabs { display: flex; gap: .75rem; flex-wrap: wrap; }
+
+/* Stickers hung on buttons and headings (src/components/Sticker.tsx). Decorative: never take clicks. */
+.stk-host { position: relative; display: inline-block; }
+.stk { position: absolute; z-index: 2; display: block; pointer-events: none; transition: transform .2s ease; }
+.stk img { display: block; width: 100%; height: auto; }
+.stk-snap { width: 74px; top: -40px; right: -34px; animation: stk-pulse 1.8s ease-in-out infinite; }
+.stk-host:hover .stk-snap, .stk-host:focus-within .stk-snap { animation: stk-wiggle .3s linear 3; }
+.stk-ready { width: 78px; top: -42px; right: -30px; transform: rotate(8deg); }
+.stk-host:hover .stk-ready, .stk-host:focus-within .stk-ready { animation: stk-pop .35s ease-out forwards; }
+.stk-tag { width: 120px; top: -18px; right: -128px; transform-origin: 10% 50%; animation: stk-pendule 1.6s ease-in-out infinite alternate; }
+.stk-hanger { width: 96px; top: -26px; right: -108px; transform-origin: 50% 0; animation: stk-sway 3s ease-in-out infinite alternate; }
+.stk-bolt { width: 70px; top: -14px; right: -82px; animation: stk-flash 1s steps(2) infinite; }
+.stk-thrift { width: 150px; top: -30px; right: -150px; transform: rotate(-6deg); }
+.stk-phone { width: 58px; top: -40px; right: -24px; transform: rotate(10deg); }
+.stk-host:hover .stk-phone, .stk-host:focus-within .stk-phone { transform: rotate(-4deg) translateY(-6px); }
+.stk-worn { width: 170px; bottom: -30px; right: -40px; transform: rotate(-4deg); }
+.stk-sweater { width: 70px; top: -36px; right: -26px; transform: rotate(-10deg); }
+.stk-host:hover .stk-sweater, .stk-host:focus-within .stk-sweater { transform: rotate(6deg) scale(1.1); }
+@keyframes stk-pulse { 50% { transform: scale(1.08) rotate(4deg); } }
+@keyframes stk-wiggle { 25% { transform: rotate(10deg); } 75% { transform: rotate(-10deg); } }
+@keyframes stk-pop { 0% { transform: rotate(8deg) scale(1); } 60% { transform: rotate(-4deg) scale(1.2); } 100% { transform: rotate(0) scale(1.1); } }
+@keyframes stk-pendule { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+@keyframes stk-sway { from { transform: rotate(-6deg); } to { transform: rotate(4deg); } }
+@keyframes stk-flash { 50% { transform: scale(1.12) rotate(-6deg); } }
+@media (max-width: 620px) {
+  .stk-snap, .stk-ready { width: 56px; top: -30px; right: -12px; }
+  .stk-tag, .stk-hanger, .stk-bolt, .stk-thrift { width: 64px; right: -70px; }
+  .stk-worn { width: 120px; right: -6px; }
+  .stk-phone, .stk-sweater { width: 46px; right: -10px; top: -30px; }
+}
+@media (prefers-reduced-motion: reduce) { .stk { animation: none !important; transition: none; } }
+.app-main { overflow-x: clip; }
+/* The camera button is wrapped by its sticker host: the host takes the button's place in the row. */
+.photo-source-actions > .stk-host { display: flex; min-width: min(100%, 15rem); flex: 1 1 12rem; }
+.photo-source-actions > .stk-host > .upload-button { flex: 1; min-width: 0; }
+.photo-input:focus-visible + .stk-host .upload-button { outline: 3px solid var(--focus); outline-offset: 5px; }
+@media (max-width: 620px) { .photo-source-actions > .stk-host { min-width: 0; } }

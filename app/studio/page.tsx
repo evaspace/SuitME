@@ -10,6 +10,7 @@ import { useGenerationStore } from '@/store/useGenerationStore';
 import { createId, useModelStore } from '@/store/useModelStore';
 import { useAccount } from '@/hooks/useAccount';
 import Link from 'next/link';
+import { WithSticker } from '@/components/Sticker';
 
 // One tap flow: a garment photo starts the try-on at once with the remembered model and style.
 export default function Studio() {
@@ -84,7 +85,7 @@ export default function Studio() {
   if (account === null) return (
     <section className="page-shell studio-page">
       <h1 className="page-heading">Snap a garment</h1>
-      <div className="empty-card compact"><h2>Log in to start</h2><p>Try-ons need a free account.</p><Link className="btn btn-primary" href="/account?next=/studio">Log in or create an account</Link></div>
+      <div className="empty-card compact"><h2>Log in to start</h2><p>Try-ons need a free account.</p><WithSticker name="sweater"><Link className="btn btn-primary" href="/account?next=/studio">Log in or create an account</Link></WithSticker></div>
     </section>
   );
 

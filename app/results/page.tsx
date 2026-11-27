@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { listingText, useGenerationStore } from '@/store/useGenerationStore';
 import { useLocalDataReady } from '@/hooks/useLocalDataReady';
+import { WithSticker } from '@/components/Sticker';
 
 type SortMode = 'newest' | 'oldest' | 'model' | 'style';
 
@@ -48,7 +49,7 @@ export default function ResultsPage() {
   if (results.length === 0) return <section className="page-shell"><header className="mb-8"><h1 className="page-heading">Results</h1></header><div className="empty-card"><div className="empty-illustration" aria-hidden="true">✳</div><h2>No results yet</h2><p>Your completed looks will appear here.</p><Link className="btn btn-primary" href="/studio">Start with a garment photo</Link></div></section>;
 
   return <section className="page-shell">
-    <header className="page-title-row"><div><h1 className="page-heading">Results</h1><p className="page-intro">{results.length} saved {results.length === 1 ? 'look' : 'looks'}</p></div><Link className="btn btn-outline" href="/studio">New garment</Link></header>
+    <header className="page-title-row"><div><h1 className="page-heading"><WithSticker name="worn">Results</WithSticker></h1><p className="page-intro">{results.length} saved {results.length === 1 ? 'look' : 'looks'}</p></div><Link className="btn btn-outline" href="/studio">New garment</Link></header>
     <div className="results-toolbar"><label className="field search-field">Find a look<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search model, style or pose" /></label><label className="field sort-field">Sort by<select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="model">Model name</option><option value="style">Style</option></select></label></div>
     {visibleResults.length === 0 ? <div className="empty-card compact"><h2>No matching looks</h2><p>Try another search or clear the search field.</p><button className="btn btn-outline" type="button" onClick={() => setQuery('')}>Clear search</button></div> : <div className="results-layout">
       <div className="result-list" aria-label="Saved results">{visibleResults.map((result) => <button key={result.id} type="button" className={`result-list-card ${selected?.id === result.id ? 'is-selected' : ''}`} aria-pressed={selected?.id === result.id} onClick={() => { setSelectedId(result.id); setFeedback(''); setCopyFailed(false); setPreviewFailed(false); }}><span className="result-thumb"><Image src={result.imageUrl} alt="" fill sizes="96px" unoptimized /></span><span className="result-list-copy"><strong>{result.modelName}</strong><span>{result.poseLabel} · {result.style}</span><time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleDateString()}</time></span><span className="selection-mark" aria-hidden="true">{selected?.id === result.id ? '✓' : ''}</span></button>)}</div>

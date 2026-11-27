@@ -3,6 +3,7 @@
 import { Suspense, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAccount } from '@/hooks/useAccount';
+import { WithSticker } from '@/components/Sticker';
 
 type Mode = 'login' | 'register' | 'forgot';
 
@@ -93,7 +94,7 @@ function AccountForms() {
 export default function AccountPage() {
   return (
     <section className="page-shell">
-      <h1 className="page-heading">Account</h1>
+      <h1 className="page-heading"><WithSticker name="thrift">Account</WithSticker></h1>
       <p className="page-intro">An account is needed to generate try-ons. Your models and results stay in this browser.</p>
       <Suspense><AccountForms /></Suspense>
     </section>
