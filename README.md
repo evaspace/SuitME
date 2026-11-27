@@ -16,6 +16,12 @@ The repository contains an interactive personal-use web app. Model profiles, ref
 - Keep all product UI and project documentation in English.
 - The selected garment and model reference photos are sent to Google Gemini only when Generate try-on is used.
 
+## Generation modes (`/api/generate`)
+
+- Try-on (default): the model photo is sent first and Gemini is told to edit it, replacing only the clothing. Pose, framing, background and lighting must stay as in the reference.
+- Enhance (`mode: "enhance"`, `enhanceStyle`): retouches a reference photo into a fashion shot (looks: editorial, catalogue, streetwear, luxury, natural) while keeping the same person, pose and clothing. Reached from a pose's Manage menu, "Enhance with AI"; the result is previewed and only replaces the photo on "Keep enhanced photo". It sends that reference photo to Gemini.
+- Adding a model needs only a photo; the name defaults to "Model N" and the other profile fields are set later in Edit profile.
+
 ## Current web foundation
 
 - Next.js App Router with TypeScript and React.

@@ -9,6 +9,7 @@ import { useLocalDataReady } from '@/hooks/useLocalDataReady';
 import { createId, POSE_CATEGORIES, useModelStore, type ModelStyle, type Pose, type PoseCategory } from '@/store/useModelStore';
 
 const poseLabel = (category: PoseCategory) => category.replaceAll('_', ' ');
+const ENHANCE_LOOKS = [['editorial', 'Magazine editorial'], ['catalogue', 'E-commerce catalogue'], ['streetwear', 'Streetwear lookbook'], ['luxury', 'Luxury campaign'], ['natural', 'Natural daylight']] as const;
 
 export default function ModelDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +21,7 @@ export default function ModelDetailPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [addingPose, setAddingPose] = useState(false);
+  const [enhancing, setEnhancing] = useState<{ poseId: string; look: string; busy: boolean; preview?: string } | null>(null);
 
   if (!model) return <section className="page-shell"><Link className="text-link" href="/models">← Back to models</Link><div className="empty-card"><h1>Model not found</h1><p>This profile may have been removed from this browser.</p><Link className="btn btn-primary" href="/models">Open model library</Link></div></section>;
   const currentModel = model;
@@ -67,6 +69,28 @@ export default function ModelDetailPage() {
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'This image could not be opened.'); }
   }
 
+  async function enhancePose(pose: Pose, look: string) {
+    setError(''); setEnhancing({ poseId: pose.id, look, busy: true });
+    console.info('[SuitMe models] enhance started', { modelId: id, pose: pose.category, look });
+    try {
+      const response = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'enhance', modelReference: { dataUrl: pose.imageUrl }, enhanceStyle: look }) });
+      const payload = await response.json() as { imageDataUrl?: string; error?: string };
+      if (!response.ok || !payload.imageDataUrl) throw new Error(payload.error || `Enhancement failed (${response.status}).`);
+      const blob = await (await fetch(payload.imageDataUrl)).blob();
+      const preview = await readImageForLocalUse(new File([blob], 'enhanced.png', { type: blob.type || 'image/png' }));
+      setEnhancing({ poseId: pose.id, look, busy: false, preview });
+    } catch (cause) {
+      console.error('[SuitMe models] enhance failed', cause);
+      setEnhancing(null); setError(cause instanceof Error ? cause.message : 'The photo could not be enhanced.');
+    }
+  }
+
+  function keepEnhanced() {
+    if (!enhancing?.preview) return;
+    updatePoses(id, currentModel.poses.map((pose) => pose.id === enhancing.poseId ? { ...pose, imageUrl: enhancing.preview! } : pose));
+    setEnhancing(null); setNotice('Enhanced photo saved.');
+  }
+
   function setDefault(poseId: string) {
     updatePoses(id, currentModel.poses.map((pose) => ({ ...pose, isDefault: pose.id === poseId })));
     setNotice('Default pose updated.');
@@ -108,7 +132,26 @@ export default function ModelDetailPage() {
 
       <div className="section-title-row"><div><h2>Poses</h2><p className="field-help">One photo per angle. A new photo in an existing angle replaces its current reference.</p></div><button className="btn btn-primary" type="button" onClick={() => { setError(''); setAddingPose((value) => !value); }}>{addingPose ? 'Close' : 'Add a pose'}</button></div>
       {addingPose && <form className="surface-card pose-add-form" onSubmit={addPose}><label className="field">Pose angle<select name="category" defaultValue={POSE_CATEGORIES.find((category) => !currentModel.poses.some((pose) => pose.category === category)) ?? POSE_CATEGORIES[0]}>{POSE_CATEGORIES.map((category) => <option key={category} value={category}>{poseLabel(category)}{currentModel.poses.some((pose) => pose.category === category) ? ' (replace)' : ''}</option>)}</select></label><label className="field">Reference photo<input type="file" name="photo" required accept="image/jpeg,image/png,image/webp" /><span className="field-help">JPG, PNG or WEBP · Up to 25 MB</span></label><button className="btn btn-primary" type="submit">Save reference pose</button></form>}
-      {currentModel.poses.length === 0 ? <div className="empty-card compact"><h3>No reference photos yet</h3><p>Add a front, profile, three-quarter, sitting, or back view to make this model ready for try-on.</p><button className="btn btn-primary" type="button" onClick={() => setAddingPose(true)}>Add the first pose</button></div> : <div className="pose-grid">{currentModel.poses.map((pose) => <article key={pose.id} className="pose-card"><div className="pose-image">{pose.imageUrl ? <Image src={pose.imageUrl} alt={`${currentModel.name}, ${poseLabel(pose.category)} pose`} fill sizes="(max-width: 700px) 80vw, 25vw" unoptimized /> : <span>Photo unavailable</span>}</div><div className="pose-info"><div><h3>{poseLabel(pose.category)}</h3><span className={pose.isDefault ? 'status-pill status-ready' : 'status-pill'}>{pose.isDefault ? 'Default pose' : 'Reference pose'}</span></div><details className="pose-menu"><summary aria-label={`Manage ${poseLabel(pose.category)} pose`}>Manage</summary><div className="pose-menu-panel"><label className="pose-menu-item">Replace photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { void replacePose(pose.id, event.target.files?.[0]); event.currentTarget.value = ''; }} /></label>{!pose.isDefault && <button type="button" className="pose-menu-item" onClick={() => setDefault(pose.id)}>Set as default</button>}<button type="button" className="pose-menu-item destructive" onClick={() => removePose(pose)}>Remove pose</button></div></details></div></article>)}</div>}
+      {currentModel.poses.length === 0 ? <div className="empty-card compact"><h3>No reference photos yet</h3><p>Add a front, profile, three-quarter, sitting, or back view to make this model ready for try-on.</p><button className="btn btn-primary" type="button" onClick={() => setAddingPose(true)}>Add the first pose</button></div> : <div className="pose-grid">{currentModel.poses.map((pose) => <article key={pose.id} className="pose-card"><div className="pose-image">{pose.imageUrl ? <Image src={pose.imageUrl} alt={`${currentModel.name}, ${poseLabel(pose.category)} pose`} fill sizes="(max-width: 700px) 80vw, 25vw" unoptimized /> : <span>Photo unavailable</span>}</div><div className="pose-info"><div><h3>{poseLabel(pose.category)}</h3><span className={pose.isDefault ? 'status-pill status-ready' : 'status-pill'}>{pose.isDefault ? 'Default pose' : 'Reference pose'}</span></div><details className="pose-menu"><summary aria-label={`Manage ${poseLabel(pose.category)} pose`}>Manage</summary><div className="pose-menu-panel"><button type="button" className="pose-menu-item" onClick={() => setEnhancing({ poseId: pose.id, look: 'editorial', busy: false })}>Enhance with AI</button><label className="pose-menu-item">Replace photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { void replacePose(pose.id, event.target.files?.[0]); event.currentTarget.value = ''; }} /></label>{!pose.isDefault && <button type="button" className="pose-menu-item" onClick={() => setDefault(pose.id)}>Set as default</button>}<button type="button" className="pose-menu-item destructive" onClick={() => removePose(pose)}>Remove pose</button></div></details></div></article>)}</div>}
+
+      {enhancing && (() => { const pose = currentModel.poses.find((entry) => entry.id === enhancing.poseId); if (!pose) return null; return <div className="dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !enhancing.busy) setEnhancing(null); }}>
+        <section className="dialog-card" role="dialog" aria-modal="true" aria-labelledby="enhance-heading">
+          <button className="dialog-close" type="button" aria-label="Close" disabled={enhancing.busy} onClick={() => setEnhancing(null)}>×</button>
+          <h2 id="enhance-heading">Enhance with AI</h2>
+          <p className="field-help">Same person, same pose. Gemini improves light, background and retouching in the look you choose.</p>
+          <div className="enhance-compare">
+            <figure><div className="pose-image"><Image src={pose.imageUrl} alt="Current photo" fill sizes="40vw" unoptimized /></div><figcaption>Current</figcaption></figure>
+            <figure><div className="pose-image">{enhancing.preview ? <Image src={enhancing.preview} alt="Enhanced photo" fill sizes="40vw" unoptimized /> : <span>{enhancing.busy ? 'Gemini is retouching the photo' : 'Preview appears here'}</span>}</div><figcaption>Enhanced</figcaption></figure>
+          </div>
+          <div className="form-grid">
+            <label className="field field-wide">Look<select value={enhancing.look} disabled={enhancing.busy} onChange={(event) => setEnhancing({ ...enhancing, look: event.target.value })}>{ENHANCE_LOOKS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <div className="form-actions field-wide">
+              <button type="button" className="btn btn-outline" disabled={enhancing.busy} onClick={() => void enhancePose(pose, enhancing.look)}>{enhancing.preview ? 'Try again' : 'Generate'}</button>
+              <button type="button" className="btn btn-primary" disabled={!enhancing.preview || enhancing.busy} onClick={keepEnhanced}>Keep enhanced photo</button>
+            </div>
+          </div>
+        </section>
+      </div>; })()}
 
       <details className="danger-zone"><summary>Delete this model</summary><p>This removes the profile and reference photos saved in this browser. Existing exported files are not affected.</p><button type="button" className="btn btn-danger" onClick={removeModel}>Delete model</button></details>
     </section>

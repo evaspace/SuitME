@@ -631,3 +631,7 @@ body { color: var(--ink); background: var(--pink); }
 .app-footer-nav a:hover, .app-footer-nav a:focus-visible { color: var(--ink); background: var(--pink); }
 .app-footer-wordmark { font-family: var(--font-display); font-weight: 400; font-size: 24vw; line-height: .85; color: var(--ink); -webkit-text-stroke: 0; }
 .app-footer-legal { font-size: .85rem; letter-spacing: 0; text-transform: none; color: var(--ink); }
+
+.enhance-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+.enhance-compare figure { margin: 0; }
+.enhance-compare figcaption { margin-top: .4rem; font-size: .9rem; }

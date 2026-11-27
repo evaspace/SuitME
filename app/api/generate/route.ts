@@ -3,6 +3,14 @@ import { NextResponse } from 'next/server';
 const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image';
 const MAX_IMAGE_BASE64_LENGTH = 8 * 1024 * 1024;
 
+const ENHANCE_STYLES: Record<string, string> = {
+  editorial: 'high-fashion magazine editorial, soft directional studio light, seamless light grey backdrop',
+  catalogue: 'clean e-commerce catalogue shot, even bright lighting, pure white background',
+  streetwear: 'streetwear lookbook, natural daylight, blurred urban street background',
+  luxury: 'luxury brand campaign, warm cinematic lighting, elegant minimal interior',
+  natural: 'natural lifestyle photo, golden-hour daylight, softly blurred outdoor background',
+};
+
 interface ImageInput {
   dataUrl?: unknown;
   label: string;
@@ -46,27 +54,36 @@ export async function POST(request: Request) {
     const body = await request.json() as {
       garment?: ImageInput;
       modelReference?: ImageInput;
-      poseLabel?: unknown;
       style?: unknown;
+      mode?: unknown;
+      enhanceStyle?: unknown;
     };
-    const garment = parseImage({ dataUrl: body.garment?.dataUrl, label: 'Garment' });
     const modelReference = parseImage({ dataUrl: body.modelReference?.dataUrl, label: 'Model reference' });
-    const poseLabel = typeof body.poseLabel === 'string' ? body.poseLabel.slice(0, 80) : 'the reference pose';
+    const enhance = body.mode === 'enhance';
     const style = typeof body.style === 'string' ? body.style.slice(0, 40) : 'casual';
+    let parts: Array<Record<string, unknown>>;
+    if (enhance) {
+      const look = ENHANCE_STYLES[String(body.enhanceStyle)] ?? ENHANCE_STYLES.editorial;
+      parts = [
+        { inlineData: modelReference },
+        { text: `Retouch this photo into a professional fashion model shot: ${look}. It must stay the same person: keep the face, identity, body shape, skin tone, hair, exact pose, limb positions, camera angle and framing unchanged. Keep the clothing unchanged. You may improve lighting, background, skin retouch, grooming and overall photographic quality. Do not add text, logos, extra people or accessories. Return only the finished image.` },
+      ];
+    } else {
+      const garment = parseImage({ dataUrl: body.garment?.dataUrl, label: 'Garment' });
+      // Model photo first: Gemini treats the first image as the base to edit, which keeps the pose.
+      parts = [
+        { inlineData: modelReference },
+        { inlineData: garment },
+        { text: `Edit the first image (the model photo). Replace only the clothing the person wears with the garment shown in the second image. Everything else must stay pixel-identical to the first image: same person, face, body, exact pose, arm and leg positions, hands, head angle, camera angle, framing, crop, background and lighting. Do not re-pose, re-frame, zoom or regenerate the person. Preserve the garment's cut, color, fabric, pattern and visible details, and wear it in a ${style} way. Do not add text, labels, accessories or extra people. Return the edited image. Also return a short listing draft in a separate text part as exactly one JSON object with string fields listingTitle, listingDescription, and listingTags. Use only details clearly visible in the garment photo. Never invent a brand, material, size, or condition. Keep title concise, description brief, and tags comma-separated. Do not place listing text in the image.` },
+      ];
+    }
 
-    console.info('[SuitMe Gemini] generation started', { requestId, model: MODEL, style });
+    console.info('[SuitMe Gemini] generation started', { requestId, model: MODEL, mode: enhance ? 'enhance' : 'tryon', style });
     const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
-        contents: [{
-          role: 'user',
-          parts: [
-            { text: `Create one photorealistic virtual try-on image. Use the garment photo as the exact clothing item to put on the person in the model reference photo. Preserve the garment's cut, color, fabric, pattern, and visible details. Preserve the person's identity, body proportions, skin tone, and ${poseLabel} pose. Style the scene as ${style}. Show a clean full-body fashion listing photo with a simple neutral background. Do not add text, labels, accessories, extra people, or change the clothing item. Return the finished image. Also return a short listing draft in a separate text part as exactly one JSON object with string fields listingTitle, listingDescription, and listingTags. Use only details clearly visible in the garment photo. Never invent a brand, material, size, or condition. Keep title concise, description brief, and tags comma-separated. Do not place listing text in the image.` },
-            { inlineData: garment },
-            { inlineData: modelReference },
-          ],
-        }],
+        contents: [{ role: 'user', parts }],
         generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
       }),
       cache: 'no-store',
@@ -91,8 +108,8 @@ export async function POST(request: Request) {
       candidates?: Array<{ content?: { parts?: Array<{ text?: string; inlineData?: { mimeType?: string; data?: string } }> }; finishReason?: string }>;
       promptFeedback?: { blockReason?: string };
     };
-    const parts = result.candidates?.flatMap((candidate) => candidate.content?.parts ?? []) ?? [];
-    const image = parts.find((part) => part.inlineData?.data)?.inlineData;
+    const outParts = result.candidates?.flatMap((candidate) => candidate.content?.parts ?? []) ?? [];
+    const image = outParts.find((part) => part.inlineData?.data)?.inlineData;
     if (!image?.data || !image.mimeType?.startsWith('image/')) {
       console.error('[SuitMe Gemini] response contained no image', { requestId, finishReason: result.candidates?.[0]?.finishReason, blockReason: result.promptFeedback?.blockReason });
       return NextResponse.json({ error: 'Gemini did not return an image for this request. Try different photos or adjust the model reference.' , requestId }, { status: 502 });
@@ -101,7 +118,7 @@ export async function POST(request: Request) {
     console.info('[SuitMe Gemini] generation completed', { requestId, mimeType: image.mimeType, outputLength: image.data.length });
     return NextResponse.json({
       imageDataUrl: `data:${image.mimeType};base64,${image.data}`,
-      listing: parseListingDraft(parts.map((part) => part.text ?? '').filter(Boolean)),
+      listing: parseListingDraft(outParts.map((part) => part.text ?? '').filter(Boolean)),
       requestId,
     });
   } catch (cause) {

@@ -41,7 +41,6 @@ export default function Studio() {
         body: JSON.stringify({
           garment: { dataUrl: garmentDataUrl },
           modelReference: { dataUrl: pose.imageUrl },
-          poseLabel: pose.category.replaceAll('_', ' '),
           style: garmentStore.styleConfig.targetStyle,
         }),
       });
